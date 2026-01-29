@@ -1,0 +1,37 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: report-service
+
+  cloud:
+    config:
+      enabled: false
+
+  #Structure moderne pour MongoDB avec URI
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+  mongodb:
+    uri: mongodb://admin:admin@localhost:27017/risk_assessment_reports?authSource=admin
+
+eureka:
+  client:
+    enabled: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    root: INFO
+    com.riskassessment.report: DEBUG
