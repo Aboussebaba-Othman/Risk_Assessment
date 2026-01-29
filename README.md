@@ -115,11 +115,3 @@ risk-assessment-platform/
 └── pom.xml (parent)
 ```
 
-## 📄 License
-
-Ce projet est développé pour des besoins internes.
-
-## 👥 Auteurs
-
-Risk Assessment Platform Team
-
