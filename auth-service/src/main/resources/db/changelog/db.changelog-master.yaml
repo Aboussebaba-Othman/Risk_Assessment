@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-initial-schema
+      author: system
+      runOnChange: false
+      sqlFile:
+        path: db/changelog/changes/001-initial-schema.sql
+        splitStatements: true
+        stripComments: false
