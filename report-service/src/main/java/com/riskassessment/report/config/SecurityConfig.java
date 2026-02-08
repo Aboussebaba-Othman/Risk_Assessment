@@ -1,4 +1,4 @@
-package com.riskassessment.auth.config;
+package com.riskassessment.report.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -8,6 +8,10 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 
+/**
+ * Security configuration for Report Service
+ * Configures OAuth2 Resource Server to validate JWT tokens from Keycloak
+ */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
@@ -22,27 +26,17 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
-                        // Admin endpoints - require ADMIN role
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        // User profile endpoints - require authentication
-                        .requestMatchers("/api/users/me").authenticated()
-                        // Tenant endpoints
-                        .requestMatchers("/api/tenants/**").authenticated()
                         // All other endpoints require authentication
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt
-                                .jwtAuthenticationConverter(jwtAuthenticationConverter())))
-                .oauth2Client(oauth2 -> {
-                    // OAuth2 client configuration for Keycloak Admin API
-                });
+                                .jwtAuthenticationConverter(jwtAuthenticationConverter())));
 
         return http.build();
     }
 
     /**
      * Converts JWT claims to Spring Security authorities
-     * Extracts roles from Keycloak realm_access.roles claim
      */
     @Bean
     public org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter jwtAuthenticationConverter() {
