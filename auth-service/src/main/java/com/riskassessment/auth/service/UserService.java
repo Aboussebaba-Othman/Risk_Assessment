@@ -1,6 +1,5 @@
 package com.riskassessment.auth.service;
 
-import com.riskassessment.auth.dto.response.UserDto;
 import com.riskassessment.auth.entity.User;
 import com.riskassessment.auth.exception.ResourceNotFoundException;
 import com.riskassessment.auth.repository.UserRepository;
@@ -34,14 +33,15 @@ public class UserService implements UserDetailsService {
                 true,
                 true,
                 true,
-                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
-        );
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole().name())));
     }
 
-    @Transactional(readOnly = true)
-    public User findByEmail(String email) {
+    /**
+     * Get user by email
+     */
+    public User getUserByEmail(String email) {
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
     }
 
     @Transactional(readOnly = true)
@@ -52,22 +52,8 @@ public class UserService implements UserDetailsService {
 
     @Transactional
     public void updateLastLogin(String email) {
-        User user = findByEmail(email);
+        User user = getUserByEmail(email);
         user.setLastLoginAt(LocalDateTime.now());
         userRepository.save(user);
-    }
-
-    public UserDto convertToDto(User user) {
-        return UserDto.builder()
-                .id(user.getId())
-                .email(user.getEmail())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .fullName(user.getFullName())
-                .role(user.getRole())
-                .tenantId(user.getTenant().getId())
-                .tenantName(user.getTenant().getName())
-                .isActive(user.getIsActive())
-                .build();
     }
 }
