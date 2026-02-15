@@ -9,9 +9,8 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-/**
- * SWOT analysis result finding
- */
+//SWOT analysis result finding
+
 @Entity
 @Table(name = "analysis_results")
 @Data
