@@ -53,4 +53,9 @@ public class AnalysisResult {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
     }
+
+    // JSON Accessor for compatibility with clients expecting 'summary'
+    public String getSummary() {
+        return this.description;
+    }
 }
