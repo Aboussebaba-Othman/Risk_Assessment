@@ -6,6 +6,10 @@ import com.riskassessment.scoring.dto.FinancialDataDTO;
 import com.riskassessment.scoring.entity.Score;
 import com.riskassessment.scoring.repository.ScoreRepository;
 import com.riskassessment.scoring.strategy.ScoringStrategy;
+import com.riskassessment.scoring.client.AlertClient;
+import com.riskassessment.scoring.dto.CompanyFinancialsDTO;
+import com.riskassessment.scoring.entity.enums.RiskLevel;
+import com.riskassessment.scoring.dto.AlertRequestDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -21,6 +25,7 @@ public class ScoringService {
 
     private final ScoreRepository scoreRepository;
     private final CompanyClient companyClient;
+    private final AlertClient alertClient;
     private final ScoringStrategy scoringStrategy;
 
     public Score calculateScore(Long companyId) {
@@ -28,7 +33,7 @@ public class ScoringService {
         CompanyDTO company = new CompanyDTO();
         company.setId(companyId);
 
-        com.riskassessment.scoring.dto.CompanyFinancialsDTO clientFinancials = companyClient
+        CompanyFinancialsDTO clientFinancials = companyClient
                 .getLatestFinancialData(companyId);
         FinancialDataDTO financials = mapToFinancialDataDTO(clientFinancials);
 
@@ -40,7 +45,7 @@ public class ScoringService {
         score.setCompanyId(companyId);
         score.setTenantId(1L);
         score.setOverallScore(new BigDecimal(calculatedScore));
-        score.setRiskLevel(com.riskassessment.scoring.entity.enums.RiskLevel.valueOf(riskLevelStr));
+        score.setRiskLevel(RiskLevel.valueOf(riskLevelStr));
         score.setScoredAt(LocalDateTime.now());
         score.setRiskRating(determineRiskRating(calculatedScore));
         score.setUpdatedAt(LocalDateTime.now());
@@ -51,10 +56,27 @@ public class ScoringService {
         Score savedScore = scoreRepository.save(score);
         log.info("Score calculated and saved: {} (Risk: {})", calculatedScore, riskLevelStr);
 
+        // Trigger Alert if Risk is HIGH
+        if ("HIGH".equals(riskLevelStr)) {
+            try {
+                AlertRequestDTO alertRequest = AlertRequestDTO
+                        .builder()
+                        .recipient("admin@riskassessment.com") // Target email (admin or user)
+                        .subject("CRITICAL RISK ALERT: Company " + companyId)
+                        .message("Risk Score dropped to " + calculatedScore + ". Immediate attention required.")
+                        .type("SCORE_CHANGE")
+                        .build();
+                alertClient.triggerAlert(alertRequest);
+                log.info("Alert triggered for company {}", companyId);
+            } catch (Exception e) {
+                log.error("Failed to trigger alert", e);
+            }
+        }
+
         return savedScore;
     }
 
-    private FinancialDataDTO mapToFinancialDataDTO(com.riskassessment.scoring.dto.CompanyFinancialsDTO source) {
+    private FinancialDataDTO mapToFinancialDataDTO(CompanyFinancialsDTO source) {
         if (source == null)
             return null;
         return FinancialDataDTO.builder()
