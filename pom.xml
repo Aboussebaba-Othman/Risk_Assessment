@@ -17,7 +17,6 @@
     <module>analysis-service</module>
     <module>report-service</module>
     <module>alert-service</module>
-    <module>gateway-service</module>
   </modules>
   <parent>
     <groupId>org.springframework.boot</groupId>
