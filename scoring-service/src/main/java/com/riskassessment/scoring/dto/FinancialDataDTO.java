@@ -11,10 +11,11 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CompanyFinancialsDTO {
+public class FinancialDataDTO {
     private BigDecimal revenue;
     private BigDecimal netResult;
-    private BigDecimal equity;
+    private BigDecimal currentAssets;
     private BigDecimal currentLiabilities;
+    private BigDecimal equity;
     private BigDecimal longTermDebt;
 }
