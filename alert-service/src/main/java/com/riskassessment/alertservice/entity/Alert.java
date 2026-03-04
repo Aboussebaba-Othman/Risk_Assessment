@@ -2,6 +2,7 @@ package com.riskassessment.alertservice.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -10,6 +11,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "alerts")
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Alert {
@@ -17,6 +19,10 @@ public class Alert {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    /** The company this alert relates to (enables /alerts/company/{id} queries) */
+    @Column(name = "company_id")
+    private Long companyId;
 
     @Column(nullable = false)
     private String recipient;
@@ -35,6 +41,11 @@ public class Alert {
     @Column(nullable = false)
     private AlertType type;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "severity")
+    private AlertSeverity severity;
+
+    @Builder.Default
     private Integer retryCount = 0;
 
     private LocalDateTime lastRetryAttempt;
@@ -50,9 +61,8 @@ public class Alert {
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
-        if (status == null) {
+        if (status == null)
             status = AlertStatus.PENDING;
-        }
     }
 
     public enum AlertStatus {
@@ -60,8 +70,10 @@ public class Alert {
     }
 
     public enum AlertType {
-        SCORE_CHANGE,
-        REPORT_GENERATED,
-        SYSTEM_ALERT
+        SCORE_CHANGE, REPORT_GENERATED, SYSTEM_ALERT
+    }
+
+    public enum AlertSeverity {
+        INFO, WARNING, HIGH, CRITICAL
     }
 }

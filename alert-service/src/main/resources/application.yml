@@ -4,8 +4,13 @@ server:
 spring:
   application:
     name: alert-service
+  cloud:
+    config:
+      enabled: true
+      uri: http://config-server:8888
+      fail-fast: false
   datasource:
-    url: jdbc:postgresql://localhost:5432/risk_alert_db
+    url: jdbc:postgresql://postgres:5432/risk_alert_db
     username: postgres
     password: password
     driver-class-name: org.postgresql.Driver
@@ -16,8 +21,8 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
   mail:
-    host: localhost
-    port: 1025 # MailHog or similar default
+    host: mailhog
+    port: 1025
     username: user
     password: password
     properties:
@@ -26,8 +31,16 @@ spring:
           auth: true
           starttls:
             enable: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://keycloak:8080/realms/risk-assessment/protocol/openid-connect/certs
 
 eureka:
   client:
+    enabled: true
+    register-with-eureka: true
+    fetch-registry: true
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://eureka-server:8761/eureka/

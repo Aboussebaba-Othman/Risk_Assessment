@@ -24,7 +24,7 @@ public class NotificationJob {
     @Scheduled(fixedDelay = 60000) // Run every minute
     public void processPendingAlerts() {
         log.debug("Checking for pending alerts...");
-        List<Alert> pendingAlerts = alertRepository.findByStatus(Alert.AlertStatus.PENDING);
+        List<Alert> pendingAlerts = alertRepository.findByStatusOrderByCreatedAtAsc(Alert.AlertStatus.PENDING);
         for (Alert alert : pendingAlerts) {
             processAlert(alert);
         }
