@@ -8,6 +8,7 @@ spring:
 eureka:
   instance:
     hostname: localhost
+    prefer-ip-address: false
   client:
     register-with-eureka: false
     fetch-registry: false
@@ -15,14 +16,22 @@ eureka:
       defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
   server:
     enable-self-preservation: false
+    eviction-interval-timer-in-ms: 15000
+    response-cache-update-interval-ms: 5000
 
 management:
   endpoints:
     web:
       exposure:
         include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
 
 logging:
   level:
     root: INFO
     com.netflix.eureka: INFO
+    com.netflix.discovery: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
