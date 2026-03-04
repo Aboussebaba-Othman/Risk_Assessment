@@ -8,10 +8,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 
-/**
- * Security configuration for Analysis Service
- * Configures OAuth2 Resource Server to validate JWT tokens from Keycloak
- */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
@@ -35,9 +31,6 @@ public class SecurityConfig {
         return http.build();
     }
 
-    /**
-     * Converts JWT claims to Spring Security authorities
-     */
     @Bean
     public org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter jwtAuthenticationConverter() {
         var converter = new org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter();

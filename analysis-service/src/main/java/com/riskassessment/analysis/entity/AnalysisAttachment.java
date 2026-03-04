@@ -1,6 +1,7 @@
 package com.riskassessment.analysis.entity;
 
 import com.riskassessment.analysis.entity.enums.FileType;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -23,6 +24,7 @@ public class AnalysisAttachment {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "analysis_id", nullable = false)
+    @JsonIgnore
     private FinancialAnalysis analysis;
 
     @Column(name = "file_name", nullable = false, length = 255)

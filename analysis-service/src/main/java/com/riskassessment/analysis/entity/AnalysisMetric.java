@@ -2,6 +2,7 @@ package com.riskassessment.analysis.entity;
 
 import com.riskassessment.analysis.entity.enums.MetricCategory;
 import com.riskassessment.analysis.entity.enums.MetricInterpretation;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,9 +10,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
-/**
- * Detailed financial metric for an analysis
- */
+
 @Entity
 @Table(name = "analysis_metrics")
 @Data
@@ -25,6 +24,7 @@ public class AnalysisMetric {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "analysis_id", nullable = false)
+    @JsonIgnore
     private FinancialAnalysis analysis;
 
     @Column(name = "metric_name", nullable = false, length = 100)

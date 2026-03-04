@@ -2,6 +2,7 @@ package com.riskassessment.analysis.entity;
 
 import com.riskassessment.analysis.entity.enums.ResultType;
 import com.riskassessment.analysis.entity.enums.Severity;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -24,6 +25,7 @@ public class AnalysisResult {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "analysis_id", nullable = false)
+    @JsonIgnore
     private FinancialAnalysis analysis;
 
     @Enumerated(EnumType.STRING)
@@ -54,7 +56,6 @@ public class AnalysisResult {
         createdAt = LocalDateTime.now();
     }
 
-    // JSON Accessor for compatibility with clients expecting 'summary'
     public String getSummary() {
         return this.description;
     }

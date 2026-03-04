@@ -23,7 +23,6 @@ public class CompanyDTO {
     private String contactEmail;
     private String contactPhone;
     private String website;
-    // Enums are usually mapped as Strings or local Enums if shared lib is not used
     private String status;
     private String riskLevel;
 }

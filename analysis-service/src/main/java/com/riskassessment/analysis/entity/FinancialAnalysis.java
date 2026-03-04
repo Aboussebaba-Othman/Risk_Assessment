@@ -14,9 +14,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Main financial analysis entity
- */
 @Entity
 @Table(name = "financial_analyses")
 @Data
