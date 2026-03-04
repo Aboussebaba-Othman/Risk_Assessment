@@ -1,37 +1,46 @@
 server:
-  port: 8086
+  port: 9006
 
 spring:
   application:
     name: alert-service
-
   cloud:
     config:
-      enabled: false
-
-  # ✅ CORRECTION: Structure moderne pour MongoDB avec URI
-  rabbitmq:
-    host: localhost
-    port: 5672
-    username: guest
-    password: guest
-  mongodb:
-    uri: mongodb://admin:admin@localhost:27017/risk_assessment_alerts?authSource=admin
+      enabled: true
+      uri: http://config-server:8888
+      fail-fast: false
+  datasource:
+    url: jdbc:postgresql://postgres:5432/risk_alert_db
+    username: postgres
+    password: password
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  mail:
+    host: mailhog
+    port: 1025
+    username: user
+    password: password
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://keycloak:8080/realms/risk-assessment/protocol/openid-connect/certs
 
 eureka:
   client:
-    enabled: false
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics
-  endpoint:
-    health:
-      show-details: always
-
-logging:
-  level:
-    root: INFO
-    com.riskassessment.alert: DEBUG
+    enabled: true
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/

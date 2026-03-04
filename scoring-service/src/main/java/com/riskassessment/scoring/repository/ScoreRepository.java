@@ -19,5 +19,7 @@ public interface ScoreRepository extends JpaRepository<Score, Long> {
 
     Optional<Score> findTopByCompanyIdOrderByScoredAtDesc(Long companyId);
 
-    List<Score> findByCompanyIdOrderByScoredAtDesc(Long companyId);
+    List<Score> findByCompanyIdOrderByCalculatedAtDesc(Long companyId);
+
+    Optional<Score> findTopByCompanyIdOrderByCalculatedAtDesc(Long companyId);
 }

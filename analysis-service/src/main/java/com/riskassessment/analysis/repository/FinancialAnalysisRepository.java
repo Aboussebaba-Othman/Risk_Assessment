@@ -1,20 +1,13 @@
 package com.riskassessment.analysis.repository;
 
 import com.riskassessment.analysis.entity.FinancialAnalysis;
-import com.riskassessment.analysis.entity.enums.AnalysisStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
-@Repository
 public interface FinancialAnalysisRepository extends JpaRepository<FinancialAnalysis, Long> {
+    Optional<FinancialAnalysis> findTopByCompanyIdOrderByCreatedAtDesc(Long companyId);
 
-    List<FinancialAnalysis> findByCompanyId(Long companyId);
-
-    List<FinancialAnalysis> findByTenantId(Long tenantId);
-
-    List<FinancialAnalysis> findByStatus(AnalysisStatus status);
-
-    List<FinancialAnalysis> findByCompanyIdOrderByPeriodEndDesc(Long companyId);
+    List<FinancialAnalysis> findByCompanyIdOrderByCreatedAtDesc(Long companyId);
 }

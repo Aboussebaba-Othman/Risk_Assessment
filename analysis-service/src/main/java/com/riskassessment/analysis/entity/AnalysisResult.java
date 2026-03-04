@@ -2,6 +2,7 @@ package com.riskassessment.analysis.entity;
 
 import com.riskassessment.analysis.entity.enums.ResultType;
 import com.riskassessment.analysis.entity.enums.Severity;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,9 +10,8 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-/**
- * SWOT analysis result finding
- */
+//SWOT analysis result finding
+
 @Entity
 @Table(name = "analysis_results")
 @Data
@@ -25,6 +25,7 @@ public class AnalysisResult {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "analysis_id", nullable = false)
+    @JsonIgnore
     private FinancialAnalysis analysis;
 
     @Enumerated(EnumType.STRING)
@@ -53,5 +54,9 @@ public class AnalysisResult {
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
+    }
+
+    public String getSummary() {
+        return this.description;
     }
 }
