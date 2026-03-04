@@ -96,4 +96,6 @@ yarn-error.log*
 
 
 # Git helper files
-
+commit.sh
+COMMITS.md
+GIT_COMMIT_STRATEGY.md

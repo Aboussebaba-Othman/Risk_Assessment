@@ -1,274 +1,143 @@
 services:
-  # --- Infrastructure Services ---
-
+  # PostgreSQL - Base de données principale
   postgres:
     image: postgres:15-alpine
-    container_name: postgres
+    container_name: risk-assessment-postgres
     environment:
+      POSTGRES_DB: risk_assessment
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: postgres
+      # Create multiple databases on startup (7 databases total)
+      POSTGRES_MULTIPLE_DATABASES: risk_assessment_auth,risk_assessment_company,risk_assessment_scoring,risk_assessment_analysis,keycloak
     ports:
-      - "5438:5432"
+      - "5432:5432"
     volumes:
-      - ./docker/init-scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
       - postgres_data:/var/lib/postgresql/data
-    networks:
-      - backend-network
+      - ./docker/postgres/init-multiple-databases.sh:/docker-entrypoint-initdb.d/init-multiple-databases.sh
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
 
+  # MongoDB - Pour reports et alerts
   mongodb:
-    image: mongo:6.0
-    container_name: mongodb
+    image: mongo:7.0
+    container_name: risk-assessment-mongodb
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: admin
+      MONGO_INITDB_DATABASE: risk_assessment
     ports:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
-    networks:
-      - backend-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
+  # Redis - Cache et sessions
+  redis:
+    image: redis:7-alpine
+    container_name: risk-assessment-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # RabbitMQ - Message broker
   rabbitmq:
-    image: rabbitmq:3-management-alpine
-    container_name: rabbitmq
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    networks:
-      - backend-network
-
-  mailhog:
-    image: mailhog/mailhog
-    container_name: mailhog
-    ports:
-      - "1025:1025"
-      - "8025:8025"
-    networks:
-      - backend-network
-
-  # Identity Provider
-  keycloak:
-    image: quay.io/keycloak/keycloak:23.0.0
-    container_name: keycloak
-    command: start-dev
+    image: rabbitmq:3.12-management-alpine
+    container_name: risk-assessment-rabbitmq
     environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"   # AMQP
+      - "15672:15672" # Management UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Adminer - Interface web pour PostgreSQL
+  adminer:
+    image: adminer:latest
+    container_name: risk-assessment-adminer
+    ports:
+      - "8090:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+    depends_on:
+      - postgres
+
+  # Mongo Express - Interface web pour MongoDB
+  mongo-express:
+    image: mongo-express:latest
+    container_name: risk-assessment-mongo-express
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: admin
+      ME_CONFIG_MONGODB_URL: mongodb://admin:admin@mongodb:27017/
+      ME_CONFIG_BASICAUTH: false
+    ports:
+      - "8091:8081"
+    depends_on:
+      - mongodb
+
+  # Keycloak - Authentication & Authorization
+  keycloak:
+    image: quay.io/keycloak/keycloak:23.0
+    container_name: risk-assessment-keycloak
+    environment:
+      # Admin credentials
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      
+      # Database configuration (using PostgreSQL)
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
       KC_DB_USERNAME: postgres
-      KC_DB_PASSWORD: password
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DB_PASSWORD: postgres
+      
+      # Hostname configuration
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_STRICT: false
+      KC_HTTP_ENABLED: true
+      KC_HEALTH_ENABLED: true
+      
+      # Logging
+      KC_LOG_LEVEL: INFO
+    command: start-dev
     ports:
       - "8180:8080"
     depends_on:
       postgres:
         condition: service_healthy
-    networks:
-      - backend-network
-
-  # Database UI Tools
-  adminer:
-    image: adminer
-    container_name: adminer
-    ports:
-      - "8089:8080"
-    networks:
-      - backend-network
-  
-  mongo-express:
-    image: mongo-express
-    container_name: mongo-express
-    ports:
-      - "8081:8081"
-    environment:
-      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
-      ME_CONFIG_MONGODB_ADMINPASSWORD: admin
-      ME_CONFIG_MONGODB_URL: mongodb://admin:admin@mongodb:27017/
-    networks:
-      - backend-network
-
-  # --- Core Services ---
-
-  config-server:
-    build: ./config-server
-    container_name: config-server
-    ports:
-      - "8888:8888"
-    environment:
-      - SPRING_PROFILES_ACTIVE=native
-      - SPRING_CLOUD_CONFIG_SERVER_GIT_URI=file:///config-repo
-    volumes:
-      - ./config-repo:/config-repo
-    networks:
-      - backend-network
-
-  eureka-server:
-    build: ./eureka-server
-    container_name: eureka-server
-    ports:
-      - "8761:8761"
-    environment:
-      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888/
-    depends_on:
-      - config-server
-    networks:
-      - backend-network
-
-  # --- Microservices ---
-
-  api-gateway:
-    build: ./api-gateway
-    container_name: api-gateway
-    ports:
-      - "9000:9000"
-    environment:
-      - SERVER_PORT=9000
-      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888/
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
-    depends_on:
-      - eureka-server
-    networks:
-      - backend-network
-
-  auth-service:
-    build: ./auth-service
-    container_name: auth-service
-    ports:
-      - "9001:9001"
-    environment:
-      - SERVER_PORT=9001
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/auth_db
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=password
-      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://keycloak:8080/realms/risk-assessment
-      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://keycloak:8080/realms/risk-assessment/protocol/openid-connect/certs
-      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888/
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
-    depends_on:
-      postgres:
-        condition: service_healthy
-      eureka-server:
-        condition: service_started
-      keycloak:
-        condition: service_started
-    networks:
-      - backend-network
-
-  company-service:
-    build: ./company-service
-    container_name: company-service
-    ports:
-      - "9002:9002"
-    environment:
-      - SERVER_PORT=9002
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/company_db
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=password
-      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888/
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
-    depends_on:
-      postgres:
-        condition: service_healthy
-      eureka-server:
-        condition: service_started
-    networks:
-      - backend-network
-
-  scoring-service:
-    build: ./scoring-service
-    container_name: scoring-service
-    ports:
-      - "9003:9003"
-    environment:
-      - SERVER_PORT=9003
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/scoring_db
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=password
-      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888/
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
-    depends_on:
-      postgres:
-        condition: service_healthy
-      eureka-server:
-        condition: service_started
-    networks:
-      - backend-network
-
-  analysis-service:
-    build: ./analysis-service
-    container_name: analysis-service
-    ports:
-      - "9004:9004"
-    environment:
-      - SERVER_PORT=9004
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/analysis_db
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=password
-      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888/
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
-    depends_on:
-      postgres:
-        condition: service_healthy
-      eureka-server:
-        condition: service_started
-    networks:
-      - backend-network
-
-  report-service:
-    build: ./report-service
-    container_name: report-service
-    ports:
-      - "9005:9005"
-    environment:
-      - SERVER_PORT=9005
-      - SPRING_DATA_MONGODB_URI=mongodb://admin:admin@mongodb:27017/risk_assessment_reports?authSource=admin
-      - SPRING_RABBITMQ_HOST=rabbitmq
-      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888/
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
-    depends_on:
-      mongodb:
-        condition: service_started
-      eureka-server:
-        condition: service_started
-      rabbitmq:
-        condition: service_started
-    networks:
-      - backend-network
-
-  alert-service:
-    build: ./alert-service
-    container_name: alert-service
-    ports:
-      - "9006:9006"
-    environment:
-      - SERVER_PORT=9006
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/risk_alert_db
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=password
-      - SPRING_MAIL_HOST=mailhog
-      - SPRING_MAIL_PORT=1025
-      - SPRING_RABBITMQ_HOST=rabbitmq
-      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888/
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
-    depends_on:
-      postgres:
-        condition: service_healthy
-      eureka-server:
-        condition: service_started
-      rabbitmq:
-        condition: service_started
-    networks:
-      - backend-network
-
-networks:
-  backend-network:
-    driver: bridge
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/8080 && echo -e 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && cat <&3 | grep -q '200 OK'"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
 
 volumes:
   postgres_data:
   mongodb_data:
+  redis_data:
+  rabbitmq_data:
+
+networks:
+  default:
+    name: risk-assessment-network
