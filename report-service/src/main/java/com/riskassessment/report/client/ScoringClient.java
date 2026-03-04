@@ -5,9 +5,9 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-@FeignClient(name = "scoring-service", url = "${application.config.scoring-service-url:http://localhost:8083}")
+@FeignClient(name = "scoring-service", url = "${application.config.scoring-service-url:http://localhost:8084}")
 public interface ScoringClient {
 
-    @GetMapping("/api/v1/scores/companies/{companyId}/latest")
+    @GetMapping("/api/v1/scoring/company/{companyId}/latest")
     ScoreDTO getLatestScore(@PathVariable("companyId") Long companyId);
 }
