@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
@@ -17,13 +18,17 @@ public class CompanyDto {
     private Long id;
     private Long tenantId;
     private String name;
-    private String registrationNumber;
-    private String taxId;
+    private String registrationNumber; // RC (Registre de Commerce)
+    private String taxId; // ICE (Identifiant Commun de l'Entreprise)
+    private String legalForm; // Forme juridique (SARL, SA, etc.)
 
     @JsonAlias({ "industry", "industrySector" })
     private String industry;
 
     private String industrySector;
+
+    private LocalDate incorporationDate; // Date de création (pour ajustement ancienneté CDC)
+    private BigDecimal shareCapital; // Capital social
 
     private String country;
     private String city;

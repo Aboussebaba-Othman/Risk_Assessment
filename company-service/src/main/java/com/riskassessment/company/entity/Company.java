@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -64,6 +65,15 @@ public class Company {
 
     @Column(length = 3)
     private String currency = "USD";
+
+    @Column(name = "incorporation_date")
+    private LocalDate incorporationDate; // Date de création — CDC ancienneté
+
+    @Column(name = "share_capital", precision = 15, scale = 2)
+    private BigDecimal shareCapital; // Capital social — CDC contexte bonus
+
+    @Column(name = "legal_form", length = 50)
+    private String legalForm; // Forme juridique (SARL, SA, etc.)
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)

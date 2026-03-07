@@ -9,10 +9,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-/**
- * Financial data entity for storing company financial statements
- * Used for risk scoring and analysis
- */
 @Entity
 @Table(name = "financial_data")
 @Data
@@ -97,6 +93,41 @@ public class FinancialData {
 
     @Column(name = "working_capital_requirement", precision = 15, scale = 2)
     private BigDecimal workingCapitalRequirement;
+
+    // CHARGES SUPPLÉMENTAIRES (Additional Expenses)
+    @Column(precision = 15, scale = 2)
+    private BigDecimal tax;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal depreciation;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal amortization;
+
+    // COMPORTEMENT DE PAIEMENT (Payment Behavior) — CDC F-02.04
+    @Column(name = "payment_incidents")
+    private Integer paymentIncidents;
+
+    @Column(name = "average_payment_delay")
+    private Integer averagePaymentDelay;
+
+    @Column(name = "total_payments")
+    private Integer totalPayments; // Nombre total de paiements (12 derniers mois)
+
+    @Column(name = "on_time_payments")
+    private Integer onTimePayments; // Paiements à temps
+
+    @Column(name = "late_payments")
+    private Integer latePayments; // Nombre de retards
+
+    @Column(name = "unpaid_count")
+    private Integer unpaidCount; // Impayés existants
+
+    @Column(name = "litigation_count")
+    private Integer litigationCount; // Contentieux en cours
+
+    @Column(name = "share_capital", precision = 15, scale = 2)
+    private BigDecimal shareCapital; // Capital social (pour CDC contexte score)
 
     // AUDIT
     @Column(name = "created_at", nullable = false, updatable = false)

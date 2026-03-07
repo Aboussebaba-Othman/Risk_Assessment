@@ -52,6 +52,12 @@ public class CompanyService {
         company.setEmployeeCount(dto.getEmployeeCount());
         company.setStatus(CompanyStatus.ACTIVE);
         company.setCurrency("EUR");
+        if (dto.getIncorporationDate() != null)
+            company.setIncorporationDate(dto.getIncorporationDate());
+        if (dto.getShareCapital() != null)
+            company.setShareCapital(dto.getShareCapital());
+        if (dto.getLegalForm() != null)
+            company.setLegalForm(dto.getLegalForm());
 
         Company saved = companyRepository.save(company);
         log.info("Created company id={} registrationNumber={}", saved.getId(), saved.getRegistrationNumber());
@@ -154,6 +160,8 @@ public class CompanyService {
             fd.setTotalLiabilities(dto.getTotalLiabilities());
         if (dto.getFinancialExpenses() != null)
             fd.setFinancialExpenses(dto.getFinancialExpenses());
+        if (dto.getCostOfGoodsSold() != null)
+            fd.setCostOfGoodsSold(dto.getCostOfGoodsSold());
         if (dto.getTax() != null)
             fd.setTax(dto.getTax());
         if (dto.getDepreciation() != null)
@@ -161,13 +169,27 @@ public class CompanyService {
         if (dto.getAmortization() != null)
             fd.setAmortization(dto.getAmortization());
 
+        // ── Payment Behavior CDC F-02.04 ──────────────────────────────────────
+        if (dto.getTotalPayments() != null)
+            fd.setTotalPayments(dto.getTotalPayments());
+        if (dto.getOnTimePayments() != null)
+            fd.setOnTimePayments(dto.getOnTimePayments());
+        if (dto.getLatePayments() != null)
+            fd.setLatePayments(dto.getLatePayments());
+        if (dto.getUnpaidCount() != null)
+            fd.setUnpaidCount(dto.getUnpaidCount());
+        if (dto.getLitigationCount() != null)
+            fd.setLitigationCount(dto.getLitigationCount());
+        if (dto.getShareCapital() != null)
+            fd.setShareCapital(dto.getShareCapital());
+
         FinancialData saved = financialDataRepository.save(fd);
         log.info("Added financial data for company {} (year {})", companyId, dto.getFiscalYear());
         return toFinancialDto(saved);
     }
 
     public List<FinancialDataDto> getFinancialData(Long companyId) {
-        return financialDataRepository.findByCompanyId(companyId).stream()
+        return financialDataRepository.findByCompanyIdOrderByFiscalYearDesc(companyId).stream()
                 .map(this::toFinancialDto)
                 .collect(Collectors.toList());
     }
@@ -182,6 +204,9 @@ public class CompanyService {
                 .registrationNumber(c.getRegistrationNumber())
                 .taxId(c.getTaxId())
                 .industry(c.getIndustry())
+                .legalForm(c.getLegalForm())
+                .incorporationDate(c.getIncorporationDate())
+                .shareCapital(c.getShareCapital())
                 .country(c.getCountry())
                 .city(c.getCity())
                 .address(c.getAddress())
@@ -203,27 +228,40 @@ public class CompanyService {
                 .id(fd.getId())
                 .companyId(fd.getCompanyId())
                 .fiscalYear(fd.getFiscalYear())
+                .periodEndDate(fd.getPeriodEndDate() != null ? fd.getPeriodEndDate().toString() : null)
+                // Income Statement
                 .revenue(fd.getRevenue())
                 .netResult(fd.getNetIncome())
                 .operatingIncome(fd.getOperatingIncome())
-                .ebitda(fd.getEbitda())
-                .equity(fd.getEquity())
-                .longTermDebt(fd.getLongTermDebt())
-                .currentAssets(fd.getCurrentAssets())
-                .currentLiabilities(fd.getCurrentLiabilities())
-                .inventory(fd.getInventory())
-                .accountsReceivable(fd.getAccountsReceivable())
-                .accountsPayable(fd.getAccountsPayable())
-                .cash(fd.getCash())
-                .totalAssets(fd.getTotalAssets())
-                .fixedAssets(fd.getFixedAssets())
-                .totalLiabilities(fd.getTotalLiabilities())
                 .financialExpenses(fd.getFinancialExpenses())
+                .costOfGoodsSold(fd.getCostOfGoodsSold())
+                .ebitda(fd.getEbitda())
                 .tax(fd.getTax())
                 .depreciation(fd.getDepreciation())
                 .amortization(fd.getAmortization())
+                // Balance Sheet - Assets
+                .totalAssets(fd.getTotalAssets())
+                .currentAssets(fd.getCurrentAssets())
+                .fixedAssets(fd.getFixedAssets())
+                .inventory(fd.getInventory())
+                .accountsReceivable(fd.getAccountsReceivable())
+                .cash(fd.getCash())
+                // Balance Sheet - Liabilities
+                .equity(fd.getEquity())
+                .longTermDebt(fd.getLongTermDebt())
+                .currentLiabilities(fd.getCurrentLiabilities())
+                .accountsPayable(fd.getAccountsPayable())
+                .totalLiabilities(fd.getTotalLiabilities())
+                // Payment Behavior
                 .paymentIncidents(fd.getPaymentIncidents())
                 .averagePaymentDelay(fd.getAveragePaymentDelay())
+                .totalPayments(fd.getTotalPayments())
+                .onTimePayments(fd.getOnTimePayments())
+                .latePayments(fd.getLatePayments())
+                .unpaidCount(fd.getUnpaidCount())
+                .litigationCount(fd.getLitigationCount())
+                // Context
+                .shareCapital(fd.getShareCapital())
                 .build();
     }
 }

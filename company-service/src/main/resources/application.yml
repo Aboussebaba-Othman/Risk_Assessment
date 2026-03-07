@@ -1,11 +1,12 @@
 server:
-  port: 8082
+  port: ${SERVER_PORT:9002}
+
 spring:
   application:
     name: company-service
   cloud:
     config:
-      enabled: false
+      enabled: true
   datasource:
     url: jdbc:postgresql://localhost:5432/risk_assessment
     username: postgres
@@ -13,10 +14,26 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://keycloak:8080/realms/risk-assessment
+          jwk-set-uri: http://keycloak:8080/realms/risk-assessment/protocol/openid-connect/certs
+  config:
+    import: optional:configserver:http://config-server:8888/
+
 eureka:
   client:
-    enabled: false
+    enabled: true
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
 management:
   endpoints:
     web:
@@ -25,7 +42,9 @@ management:
   endpoint:
     health:
       show-details: always
+
 logging:
   level:
     root: INFO
+    org.springframework.web: DEBUG
     com.riskassessment.company: DEBUG
