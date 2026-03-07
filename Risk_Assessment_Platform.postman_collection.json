@@ -1,0 +1,386 @@
+{
+  "info": {
+    "name": "Risk Assessment Platform — Complete API",
+    "description": "Collection complète pour tester tous les endpoints HTTP du Risk Assessment B2B Platform.\n\nBase URL via API Gateway: http://localhost:9000\n\nFlow:\n1. Auth → Login pour obtenir le token\n2. Company → Créer société + données financières\n3. Scoring → Calculer score CDC (15 ratios)\n4. Analysis → SWOT Analysis\n5. Report → Télécharger PDF",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "gateway", "value": "http://localhost:9000", "type": "string" },
+    { "key": "auth_url", "value": "http://localhost:9001", "type": "string" },
+    { "key": "company_url", "value": "http://localhost:9002", "type": "string" },
+    { "key": "scoring_url", "value": "http://localhost:9003", "type": "string" },
+    { "key": "analysis_url", "value": "http://localhost:9004", "type": "string" },
+    { "key": "report_url", "value": "http://localhost:9005", "type": "string" },
+    { "key": "alert_url", "value": "http://localhost:9006", "type": "string" },
+    { "key": "token", "value": "", "type": "string" },
+    { "key": "company_id", "value": "1", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "🔐 Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{auth_url}}/auth/register", "host": ["{{auth_url}}"], "path": ["auth", "register"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\",\n  \"email\": \"admin@riskassessment.com\",\n  \"firstName\": \"Admin\",\n  \"lastName\": \"User\",\n  \"role\": \"ADMIN\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login [AUTO-SET TOKEN]",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.token) {",
+                  "  pm.collectionVariables.set('token', json.token);",
+                  "  console.log('✅ Token saved:', json.token.substring(0, 30) + '...');",
+                  "} else if (json.accessToken) {",
+                  "  pm.collectionVariables.set('token', json.accessToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{auth_url}}/auth/login", "host": ["{{auth_url}}"], "path": ["auth", "login"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{auth_url}}/auth/health", "host": ["{{auth_url}}"], "path": ["auth", "health"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏢 Company Service",
+      "item": [
+        {
+          "name": "POST Add Company [AUTO-SET ID]",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.id) {",
+                  "  pm.collectionVariables.set('company_id', json.id);",
+                  "  console.log('✅ Company ID saved:', json.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{company_url}}/api/v1/companies", "host": ["{{company_url}}"], "path": ["api", "v1", "companies"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Tech Maroc SARL\",\n  \"taxId\": \"ICE001122334\",\n  \"registrationNumber\": \"RC-CAS-2018-001\",\n  \"industry\": \"TECH\",\n  \"legalForm\": \"SARL\",\n  \"incorporationDate\": \"2018-03-15\",\n  \"shareCapital\": 500000,\n  \"country\": \"MA\",\n  \"city\": \"Casablanca\",\n  \"address\": \"123 Bd Hassan II, Casablanca\",\n  \"email\": \"contact@techmaroc.ma\",\n  \"phone\": \"+212600000001\",\n  \"website\": \"https://techmaroc.ma\",\n  \"employeeCount\": 75\n}"
+            }
+          }
+        },
+        {
+          "name": "GET All Companies",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{company_url}}/api/v1/companies", "host": ["{{company_url}}"], "path": ["api", "v1", "companies"] }
+          }
+        },
+        {
+          "name": "GET Company by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{company_url}}/api/v1/companies/{{company_id}}", "host": ["{{company_url}}"], "path": ["api", "v1", "companies", "{{company_id}}"] }
+          }
+        },
+        {
+          "name": "PUT Update Company",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{company_url}}/api/v1/companies/{{company_id}}", "host": ["{{company_url}}"], "path": ["api", "v1", "companies", "{{company_id}}"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employeeCount\": 90,\n  \"phone\": \"+212600000099\"\n}"
+            }
+          }
+        },
+        {
+          "name": "POST Add Financial Data",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{company_url}}/api/v1/companies/{{company_id}}/financials", "host": ["{{company_url}}"], "path": ["api", "v1", "companies", "{{company_id}}", "financials"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fiscalYear\": 2024,\n  \"periodEndDate\": \"2024-12-31\",\n\n  \"revenue\": 8500000,\n  \"netResult\": 680000,\n  \"operatingIncome\": 950000,\n  \"ebitda\": 1200000,\n  \"financialExpenses\": 120000,\n  \"costOfGoodsSold\": 4250000,\n  \"tax\": 200000,\n  \"depreciation\": 150000,\n  \"amortization\": 50000,\n\n  \"totalAssets\": 6000000,\n  \"currentAssets\": 2400000,\n  \"fixedAssets\": 3600000,\n  \"inventory\": 600000,\n  \"accountsReceivable\": 900000,\n  \"cash\": 900000,\n\n  \"equity\": 2500000,\n  \"longTermDebt\": 1500000,\n  \"currentLiabilities\": 1000000,\n  \"accountsPayable\": 400000,\n  \"totalLiabilities\": 3500000,\n\n  \"totalPayments\": 150,\n  \"onTimePayments\": 138,\n  \"latePayments\": 10,\n  \"unpaidCount\": 2,\n  \"litigationCount\": 0,\n  \"averagePaymentDelay\": 18,\n  \"shareCapital\": 500000\n}"
+            }
+          }
+        },
+        {
+          "name": "GET Financial Data (All Years)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{company_url}}/api/v1/companies/{{company_id}}/financials", "host": ["{{company_url}}"], "path": ["api", "v1", "companies", "{{company_id}}", "financials"] }
+          }
+        },
+        {
+          "name": "GET Latest Financial Data",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{company_url}}/api/v1/companies/{{company_id}}/financials/latest", "host": ["{{company_url}}"], "path": ["api", "v1", "companies", "{{company_id}}", "financials", "latest"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📊 Scoring Service",
+      "item": [
+        {
+          "name": "POST Calculate Score CDC",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{scoring_url}}/api/v1/scores/calculate/{{company_id}}", "host": ["{{scoring_url}}"], "path": ["api", "v1", "scores", "calculate", "{{company_id}}"] }
+          }
+        },
+        {
+          "name": "GET Latest Score",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{scoring_url}}/api/v1/scores/companies/{{company_id}}/latest", "host": ["{{scoring_url}}"], "path": ["api", "v1", "scores", "companies", "{{company_id}}", "latest"] }
+          }
+        },
+        {
+          "name": "GET Score History",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{scoring_url}}/api/v1/scores/companies/{{company_id}}/history", "host": ["{{scoring_url}}"], "path": ["api", "v1", "scores", "companies", "{{company_id}}", "history"] }
+          }
+        },
+        {
+          "name": "GET Recommendation (Decision Matrix CDC F-03)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{scoring_url}}/api/v1/scores/companies/{{company_id}}/recommendation", "host": ["{{scoring_url}}"], "path": ["api", "v1", "scores", "companies", "{{company_id}}", "recommendation"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔬 Analysis Service (SWOT)",
+      "item": [
+        {
+          "name": "POST Trigger SWOT Analysis",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{analysis_url}}/analysis/companies/{{company_id}}/trigger", "host": ["{{analysis_url}}"], "path": ["analysis", "companies", "{{company_id}}", "trigger"] }
+          }
+        },
+        {
+          "name": "GET Latest SWOT Analysis",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{analysis_url}}/analysis/companies/{{company_id}}/latest", "host": ["{{analysis_url}}"], "path": ["analysis", "companies", "{{company_id}}", "latest"] }
+          }
+        },
+        {
+          "name": "GET SWOT History",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{analysis_url}}/analysis/companies/{{company_id}}/history", "host": ["{{analysis_url}}"], "path": ["analysis", "companies", "{{company_id}}", "history"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔔 Alert Service",
+      "item": [
+        {
+          "name": "GET All Alerts",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{alert_url}}/alerts", "host": ["{{alert_url}}"], "path": ["alerts"] }
+          }
+        },
+        {
+          "name": "GET Alerts by Company",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{alert_url}}/alerts/company/{{company_id}}", "host": ["{{alert_url}}"], "path": ["alerts", "company", "{{company_id}}"] }
+          }
+        },
+        {
+          "name": "POST Trigger Alert (Manual)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{alert_url}}/alerts/trigger", "host": ["{{alert_url}}"], "path": ["alerts", "trigger"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recipient\": \"risk@riskassessment.com\",\n  \"subject\": \"Test Alert\",\n  \"message\": \"Ceci est un test d'alerte manuel.\",\n  \"type\": \"MANUAL_TEST\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📄 Report Service",
+      "item": [
+        {
+          "name": "GET Download PDF Report",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{report_url}}/api/v1/reports/company/{{company_id}}/download", "host": ["{{report_url}}"], "path": ["api", "v1", "reports", "company", "{{company_id}}", "download"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔄 End-to-End Flow",
+      "item": [
+        {
+          "name": "1️⃣ Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "var tok = json.token || json.accessToken;",
+                  "if (tok) pm.collectionVariables.set('token', tok);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{auth_url}}/auth/login", "host": ["{{auth_url}}"], "path": ["auth", "login"] },
+            "body": { "mode": "raw", "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}" }
+          }
+        },
+        {
+          "name": "2️⃣ Create Company",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.id) pm.collectionVariables.set('company_id', json.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{company_url}}/api/v1/companies", "host": ["{{company_url}}"], "path": ["api", "v1", "companies"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"E2E Test Company\",\n  \"industry\": \"TECH\",\n  \"incorporationDate\": \"2015-06-01\",\n  \"shareCapital\": 1000000,\n  \"country\": \"MA\",\n  \"employeeCount\": 120\n}"
+            }
+          }
+        },
+        {
+          "name": "3️⃣ Add Financial Data",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{company_url}}/api/v1/companies/{{company_id}}/financials", "host": ["{{company_url}}"], "path": ["api", "v1", "companies", "{{company_id}}", "financials"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fiscalYear\": 2024,\n  \"revenue\": 10000000, \"netResult\": 800000, \"operatingIncome\": 1100000,\n  \"ebitda\": 1400000, \"financialExpenses\": 100000, \"costOfGoodsSold\": 5000000,\n  \"totalAssets\": 8000000, \"currentAssets\": 3000000, \"fixedAssets\": 5000000,\n  \"inventory\": 500000, \"accountsReceivable\": 1200000, \"cash\": 1300000,\n  \"equity\": 4000000, \"longTermDebt\": 2000000, \"currentLiabilities\": 2000000,\n  \"accountsPayable\": 600000, \"totalLiabilities\": 4000000,\n  \"totalPayments\": 200, \"onTimePayments\": 190, \"latePayments\": 8,\n  \"unpaidCount\": 2, \"litigationCount\": 0, \"averagePaymentDelay\": 12,\n  \"shareCapital\": 1000000\n}"
+            }
+          }
+        },
+        {
+          "name": "4️⃣ Calculate Score CDC",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{scoring_url}}/api/v1/scores/calculate/{{company_id}}", "host": ["{{scoring_url}}"], "path": ["api", "v1", "scores", "calculate", "{{company_id}}"] }
+          }
+        },
+        {
+          "name": "5️⃣ Get Recommendation",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{scoring_url}}/api/v1/scores/companies/{{company_id}}/recommendation", "host": ["{{scoring_url}}"], "path": ["api", "v1", "scores", "companies", "{{company_id}}", "recommendation"] }
+          }
+        },
+        {
+          "name": "6️⃣ Trigger SWOT Analysis",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{analysis_url}}/analysis/companies/{{company_id}}/trigger", "host": ["{{analysis_url}}"], "path": ["analysis", "companies", "{{company_id}}", "trigger"] }
+          }
+        },
+        {
+          "name": "7️⃣ Download PDF Report",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{report_url}}/api/v1/reports/company/{{company_id}}/download", "host": ["{{report_url}}"], "path": ["api", "v1", "reports", "company", "{{company_id}}", "download"] }
+          }
+        }
+      ]
+    }
+  ]
+}

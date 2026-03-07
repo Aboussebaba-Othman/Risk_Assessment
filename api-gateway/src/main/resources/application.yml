@@ -1,5 +1,5 @@
 server:
-  port: 9000
+  port: ${SERVER_PORT:9000}
 
 spring:
   application:
@@ -11,42 +11,57 @@ spring:
           enabled: true
           lower-case-service-id: true
       routes:
+        # auth-service: controller maps to /auth/**  → StripPrefix=2 strips /api/v1
         - id: auth-service
           uri: lb://auth-service
           predicates:
             - Path=/api/v1/auth/**
-        
+          filters:
+            - StripPrefix=2
+
+        # company-service: controller maps to /companies/**  → StripPrefix=2
         - id: company-service
           uri: lb://company-service
           predicates:
             - Path=/api/v1/companies/**
-            
+          filters:
+            - StripPrefix=2
+
+        # scoring-service: controller maps to /api/v1/scores/**  → StripPrefix=0
         - id: scoring-service
           uri: lb://scoring-service
           predicates:
             - Path=/api/v1/scores/**
-            
+
+        # analysis-service: controller maps to /analysis/**  → StripPrefix=2
         - id: analysis-service
           uri: lb://analysis-service
           predicates:
             - Path=/api/v1/analysis/**
+          filters:
+            - StripPrefix=2
 
+        # report-service: controller maps to /api/v1/reports/**  → StripPrefix=0
         - id: report-service
           uri: lb://report-service
           predicates:
             - Path=/api/v1/reports/**
 
+        # alert-service: controller maps to /alerts/**  → StripPrefix=2
         - id: alert-service
           uri: lb://alert-service
           predicates:
             - Path=/api/v1/alerts/**
+          filters:
+            - StripPrefix=2
 
 eureka:
   client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka/
+    enabled: true
     register-with-eureka: true
     fetch-registry: true
+    service-url:
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://eureka-server:8761/eureka/}
 
 management:
   endpoints:
