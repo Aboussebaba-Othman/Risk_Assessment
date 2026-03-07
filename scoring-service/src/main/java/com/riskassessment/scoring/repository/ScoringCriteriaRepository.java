@@ -14,5 +14,5 @@ public interface ScoringCriteriaRepository extends JpaRepository<ScoringCriteria
 
     List<ScoringCriteria> findByIsActiveTrue();
 
-    List<ScoringCriteria> findByCategoryAndIsActiveTrue(ScoringCategory category, Boolean isActive);
+    List<ScoringCriteria> findByCategoryAndIsActiveTrue(ScoringCategory category);
 }

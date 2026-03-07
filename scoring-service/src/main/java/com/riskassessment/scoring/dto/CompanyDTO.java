@@ -13,6 +13,7 @@ import java.time.LocalDate;
 @Builder
 public class CompanyDTO {
     private Long id;
+    private Long tenantId;
     private String name;
     private String taxId;
     private String industrySector;
