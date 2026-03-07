@@ -1,12 +1,10 @@
 package com.riskassessment.report.repository;
 
 import com.riskassessment.report.entity.Report;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.List;
 
-@Repository
-public interface ReportRepository extends JpaRepository<Report, Long> {
-    List<Report> findByCompanyId(Long companyId);
+public interface ReportRepository extends MongoRepository<Report, String> {
+    List<Report> findByCompanyIdOrderByReportDateDesc(Long companyId);
 }

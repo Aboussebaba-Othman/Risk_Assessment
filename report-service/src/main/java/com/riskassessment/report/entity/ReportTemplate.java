@@ -1,54 +1,46 @@
 package com.riskassessment.report.entity;
 
-import com.riskassessment.report.entity.enums.TemplateType;
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "report_templates")
+/**
+ * Report template stored in MongoDB.
+ */
+@Document(collection = "report_templates")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class ReportTemplate {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
-    @Column(nullable = false, length = 100)
+    @Field("name")
     private String name;
 
-    @Column(columnDefinition = "TEXT")
+    @Field("description")
     private String description;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "template_type", nullable = false, length = 50)
-    private TemplateType templateType;
+    @Field("template_type")
+    private String templateType;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Field("content")
     private String content;
 
-    @Column(name = "is_active", nullable = false)
+    @Field("is_active")
     private Boolean isActive = true;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Field("created_at")
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at", nullable = false)
+    @Field("updated_at")
     private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 }

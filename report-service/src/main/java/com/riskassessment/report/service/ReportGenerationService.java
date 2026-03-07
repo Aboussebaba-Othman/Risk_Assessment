@@ -5,6 +5,7 @@ import com.riskassessment.report.client.CompanyClient;
 import com.riskassessment.report.client.ScoringClient;
 import com.riskassessment.report.dto.AnalysisDTO;
 import com.riskassessment.report.dto.CompanyDTO;
+import com.riskassessment.report.dto.RecommendationDTO;
 import com.riskassessment.report.dto.ScoreDTO;
 import com.riskassessment.report.entity.Report;
 import com.riskassessment.report.repository.ReportRepository;
@@ -28,24 +29,21 @@ public class ReportGenerationService {
     public byte[] generateCompanyReport(Long companyId) {
         log.info("Starting report generation for companyId: {}", companyId);
 
-        // 1. Fetch Aggregated Data with Fail-Safe
         CompanyDTO company = fetchCompanyData(companyId);
         ScoreDTO score = fetchScoreData(companyId);
+        RecommendationDTO rec = fetchRecommendation(companyId);
         AnalysisDTO analysis = fetchAnalysisData(companyId);
 
-        // 2. Generate PDF
         byte[] pdfContent;
         try {
-            pdfContent = pdfGeneratorService.generateRiskReport(company, score, analysis);
+            pdfContent = pdfGeneratorService.generateRiskReport(company, score, rec, analysis);
         } catch (Exception e) {
             log.error("Error during PDF formatting", e);
             throw new com.riskassessment.report.exception.ReportGenerationException("Failed to generate PDF document",
                     e);
         }
 
-        // 3. Save Metadata
         saveReportMetadata(companyId);
-
         return pdfContent;
     }
 
@@ -54,7 +52,7 @@ public class ReportGenerationService {
             return companyClient.getCompanyById(companyId);
         } catch (Exception e) {
             log.error("Failed to fetch company data for id: {}", companyId, e);
-            return null; // Return null to indicate missing data in report
+            return null;
         }
     }
 
@@ -62,7 +60,16 @@ public class ReportGenerationService {
         try {
             return scoringClient.getLatestScore(companyId);
         } catch (Exception e) {
-            log.warn("Failed to fetch score data for companyId: {}", companyId, e);
+            log.warn("Failed to fetch score for companyId: {}", companyId, e);
+            return null;
+        }
+    }
+
+    private RecommendationDTO fetchRecommendation(Long companyId) {
+        try {
+            return scoringClient.getRecommendation(companyId);
+        } catch (Exception e) {
+            log.warn("Failed to fetch recommendation for companyId: {}", companyId, e);
             return null;
         }
     }
@@ -71,7 +78,7 @@ public class ReportGenerationService {
         try {
             return analysisClient.performSwotAnalysis(companyId);
         } catch (Exception e) {
-            log.warn("Failed to fetch analysis data for companyId: {}", companyId, e);
+            log.warn("Failed to fetch analysis for companyId: {}", companyId, e);
             return null;
         }
     }
@@ -84,11 +91,10 @@ public class ReportGenerationService {
             report.setReportType("FULL_RISK_ASSESSMENT");
             report.setFormat("PDF");
             report.setStatus("GENERATED");
-            report.setGeneratedBy(1L); // Placeholder for actual user ID
+            report.setGeneratedBy(1L);
             reportRepository.save(report);
         } catch (Exception e) {
             log.error("Failed to save report metadata for companyId: {}", companyId, e);
-            
         }
     }
 }

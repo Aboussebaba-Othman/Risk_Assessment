@@ -1,15 +1,16 @@
 package com.riskassessment.report.entity;
 
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "reports")
+@Document(collection = "reports")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -17,24 +18,23 @@ import java.time.LocalDateTime;
 public class Report {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
-    @Column(name = "company_id", nullable = false)
+    @Field("company_id")
     private Long companyId;
 
-    @Column(name = "report_type", nullable = false)
-    private String reportType; // e.g., FULL_RISK_ASSESSMENT
+    @Field("report_type")
+    private String reportType;
 
-    @Column(name = "format", nullable = false)
-    private String format; // PDF, HTML
+    @Field("format")
+    private String format;
 
-    @Column(name = "report_date", nullable = false)
+    @Field("report_date")
     private LocalDateTime reportDate;
 
-    @Column(name = "status")
+    @Field("status")
     private String status;
 
-    @Column(name = "generated_by")
+    @Field("generated_by")
     private Long generatedBy;
 }

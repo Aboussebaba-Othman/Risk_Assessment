@@ -1,26 +1,37 @@
 server:
-  port: 8085
+  port: ${SERVER_PORT:9005}
 
 spring:
   application:
     name: report-service
-
   cloud:
     config:
-      enabled: false
-
-  #Structure moderne pour MongoDB avec URI
+      enabled: true
+      uri: http://config-server:8888
+      fail-fast: false
   rabbitmq:
-    host: localhost
+    host: ${SPRING_RABBITMQ_HOST:localhost}
     port: 5672
     username: guest
     password: guest
-  mongodb:
-    uri: mongodb://admin:admin@localhost:27017/risk_assessment_reports?authSource=admin
+  data:
+    mongodb:
+      uri: ${SPRING_DATA_MONGODB_URI:mongodb://admin:admin@localhost:27017/risk_assessment_reports?authSource=admin}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI:http://keycloak:8080/realms/risk-assessment/protocol/openid-connect/certs}
 
 eureka:
   client:
-    enabled: false
+    enabled: true
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://eureka-server:8761/eureka/}
+  instance:
+    prefer-ip-address: true
 
 management:
   endpoints:
