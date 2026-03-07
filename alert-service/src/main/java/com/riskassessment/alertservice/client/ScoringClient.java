@@ -7,10 +7,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 
-
 @FeignClient(name = "scoring-service")
 public interface ScoringClient {
 
-    @GetMapping("/scores/companies/{companyId}/history")
+    @GetMapping("/api/v1/scores/companies/{companyId}/history")
     List<ScoreDTO> getScoreHistory(@PathVariable Long companyId);
 }
