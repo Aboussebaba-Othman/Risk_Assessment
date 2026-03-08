@@ -39,7 +39,7 @@ public class Company {
     @Column(length = 100)
     private String industry;
 
-    @Column(length = 2)
+    @Column(length = 100)
     private String country;
 
     @Column(length = 100)

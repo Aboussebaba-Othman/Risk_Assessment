@@ -7,47 +7,53 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 /**
- * Security configuration for Company Service
- * Configures OAuth2 Resource Server to validate JWT tokens from Keycloak
+ * Security configuration for Company Service.
+ *
+ * Authentication is handled by the API Gateway (which validates the JWT from
+ * auth-service).
+ * Inside the cluster, services trust requests that have already passed gateway
+ * auth.
+ * For local/dev, we permit all internal API calls to avoid Keycloak dependency.
  */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        // Public endpoints
-                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()
-                        // All other endpoints require authentication
-                        .anyRequest().authenticated())
-                .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(jwt -> jwt
-                                .jwtAuthenticationConverter(jwtAuthenticationConverter())));
+        @Bean
+        public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                http
+                                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                                .csrf(csrf -> csrf.disable())
+                                .sessionManagement(session -> session
+                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                                .authorizeHttpRequests(auth -> auth
+                                                // Allow actuator health checks
+                                                .requestMatchers("/actuator/**").permitAll()
+                                                // Allow all API calls — auth is enforced at the API Gateway level
+                                                .anyRequest().permitAll());
 
-        return http.build();
-    }
+                return http.build();
+        }
 
-    /**
-     * Converts JWT claims to Spring Security authorities
-     */
-    @Bean
-    public org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter jwtAuthenticationConverter() {
-        var converter = new org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter();
+        @Bean
+        public CorsConfigurationSource corsConfigurationSource() {
+                CorsConfiguration config = new CorsConfiguration();
+                config.setAllowedOriginPatterns(List.of("*"));
+                config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+                config.setAllowedHeaders(List.of("*"));
+                config.setAllowCredentials(false);
+                config.setMaxAge(3600L);
 
-        // Extract roles from realm_access.roles claim
-        var grantedAuthoritiesConverter = new org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter();
-        grantedAuthoritiesConverter.setAuthoritiesClaimName("realm_access.roles");
-        grantedAuthoritiesConverter.setAuthorityPrefix("ROLE_");
-
-        converter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
-        return converter;
-    }
+                UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+                source.registerCorsConfiguration("/**", config);
+                return source;
+        }
 }

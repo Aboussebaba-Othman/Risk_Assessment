@@ -50,8 +50,13 @@ public class CompanyService {
         company.setEmail(dto.getEmail() != null ? dto.getEmail() : dto.getContactEmail());
         company.setWebsite(dto.getWebsite());
         company.setEmployeeCount(dto.getEmployeeCount());
-        company.setStatus(CompanyStatus.ACTIVE);
-        company.setCurrency("EUR");
+        // Status: use DTO value if provided and valid, fallback to ACTIVE
+        try {
+            company.setStatus(dto.getStatus() != null ? CompanyStatus.valueOf(dto.getStatus()) : CompanyStatus.ACTIVE);
+        } catch (IllegalArgumentException ignored) {
+            company.setStatus(CompanyStatus.ACTIVE);
+        }
+        company.setCurrency("MAD"); 
         if (dto.getIncorporationDate() != null)
             company.setIncorporationDate(dto.getIncorporationDate());
         if (dto.getShareCapital() != null)
