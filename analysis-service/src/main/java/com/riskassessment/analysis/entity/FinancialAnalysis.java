@@ -1,8 +1,8 @@
 package com.riskassessment.analysis.entity;
 
-import com.riskassessment.analysis.entity.enums.AnalysisStatus;
-import com.riskassessment.analysis.entity.enums.AnalysisType;
-import com.riskassessment.analysis.entity.enums.OverallHealth;
+import com.riskassessment.analysis.enums.AnalysisStatus;
+import com.riskassessment.analysis.enums.AnalysisType;
+import com.riskassessment.analysis.enums.OverallHealth;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

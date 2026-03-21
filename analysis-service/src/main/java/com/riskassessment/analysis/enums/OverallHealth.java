@@ -1,4 +1,4 @@
-package com.riskassessment.analysis.entity.enums;
+package com.riskassessment.analysis.enums;
 
 public enum OverallHealth {
     EXCELLENT,

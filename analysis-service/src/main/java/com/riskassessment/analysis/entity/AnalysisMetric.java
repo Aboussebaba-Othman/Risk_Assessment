@@ -1,7 +1,7 @@
 package com.riskassessment.analysis.entity;
 
-import com.riskassessment.analysis.entity.enums.MetricCategory;
-import com.riskassessment.analysis.entity.enums.MetricInterpretation;
+import com.riskassessment.analysis.enums.MetricCategory;
+import com.riskassessment.analysis.enums.MetricInterpretation;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

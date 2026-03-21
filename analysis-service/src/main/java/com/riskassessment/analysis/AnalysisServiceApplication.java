@@ -1,4 +1,4 @@
-package com.riskassessment.analysisservice;
+package com.riskassessment.analysis;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

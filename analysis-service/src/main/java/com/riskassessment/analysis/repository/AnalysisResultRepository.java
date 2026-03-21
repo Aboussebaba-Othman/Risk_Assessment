@@ -1,7 +1,7 @@
 package com.riskassessment.analysis.repository;
 
 import com.riskassessment.analysis.entity.AnalysisResult;
-import com.riskassessment.analysis.entity.enums.ResultType;
+import com.riskassessment.analysis.enums.ResultType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

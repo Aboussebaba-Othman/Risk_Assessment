@@ -1,7 +1,7 @@
 package com.riskassessment.analysis.entity;
 
-import com.riskassessment.analysis.entity.enums.ResultType;
-import com.riskassessment.analysis.entity.enums.Severity;
+import com.riskassessment.analysis.enums.ResultType;
+import com.riskassessment.analysis.enums.Severity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
