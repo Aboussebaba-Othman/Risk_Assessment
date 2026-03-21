@@ -7,6 +7,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import com.riskassessment.alertservice.enums.AlertStatus;
+import com.riskassessment.alertservice.enums.AlertType;
+import com.riskassessment.alertservice.enums.AlertSeverity;
 
 @Entity
 @Table(name = "alerts")
@@ -63,17 +66,5 @@ public class Alert {
         createdAt = LocalDateTime.now();
         if (status == null)
             status = AlertStatus.PENDING;
-    }
-
-    public enum AlertStatus {
-        PENDING, SENT, FAILED
-    }
-
-    public enum AlertType {
-        SCORE_CHANGE, REPORT_GENERATED, SYSTEM_ALERT
-    }
-
-    public enum AlertSeverity {
-        INFO, WARNING, HIGH, CRITICAL
     }
 }

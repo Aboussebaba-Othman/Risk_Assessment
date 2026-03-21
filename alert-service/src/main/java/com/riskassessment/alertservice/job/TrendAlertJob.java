@@ -2,7 +2,10 @@ package com.riskassessment.alertservice.job;
 
 import com.riskassessment.alertservice.client.ScoringClient;
 import com.riskassessment.alertservice.dto.ScoreDTO;
+import com.riskassessment.alertservice.dto.AlertResponseDTO;
 import com.riskassessment.alertservice.entity.Alert;
+import com.riskassessment.alertservice.enums.AlertSeverity;
+import com.riskassessment.alertservice.enums.AlertType;
 import com.riskassessment.alertservice.service.AlertService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -93,16 +96,16 @@ public class TrendAlertJob {
                     latest.getOverallScore().doubleValue(), latest.getRiskRating(),
                     drop.doubleValue());
 
-            Alert.AlertSeverity severity = drop.compareTo(BigDecimal.valueOf(20)) >= 0
-                    ? Alert.AlertSeverity.HIGH
-                    : Alert.AlertSeverity.WARNING;
+            AlertSeverity severity = drop.compareTo(BigDecimal.valueOf(20)) >= 0
+                    ? AlertSeverity.HIGH
+                    : AlertSeverity.WARNING;
 
             alertService.createAndSendAlert(
                     companyId,
                     "risk@riskassessment.com",
                     subject,
                     message,
-                    Alert.AlertType.SCORE_CHANGE,
+                    AlertType.SCORE_CHANGE,
                     severity);
 
             log.warn("TrendAlertJob — TREND alert created for companyId={} drop={} pts", companyId, drop);
@@ -111,11 +114,10 @@ public class TrendAlertJob {
 
   
     private List<Long> getTrackedCompanyIds() {
-        // Use distinct companyIds from recently created alerts (companyId != null)
         try {
             return alertService.getAllAlerts().stream()
                     .filter(a -> a.getCompanyId() != null)
-                    .map(Alert::getCompanyId)
+                    .map(AlertResponseDTO::getCompanyId)
                     .distinct()
                     .collect(java.util.stream.Collectors.toList());
         } catch (Exception e) {

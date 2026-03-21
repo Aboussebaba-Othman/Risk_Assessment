@@ -1,53 +1,26 @@
 package com.riskassessment.alertservice.service;
 
-import com.riskassessment.alertservice.entity.Alert;
-import com.riskassessment.alertservice.repository.AlertRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import com.riskassessment.alertservice.dto.AlertRequestDTO;
+import com.riskassessment.alertservice.dto.AlertResponseDTO;
+import com.riskassessment.alertservice.enums.AlertSeverity;
+import com.riskassessment.alertservice.enums.AlertType;
 
 import java.util.List;
 
-@Service
-@RequiredArgsConstructor
-@Slf4j
-public class AlertService {
+public interface AlertService {
 
-    private final AlertRepository alertRepository;
+    AlertResponseDTO createAndSendAlert(Long companyId, String recipient, String subject,
+                                        String message, AlertType type,
+                                        AlertSeverity severity);
 
-    @Transactional
-    public Alert createAndSendAlert(Long companyId, String recipient, String subject,
-            String message, Alert.AlertType type,
-            Alert.AlertSeverity severity) {
-        Alert alert = Alert.builder()
-                .companyId(companyId)
-                .recipient(recipient)
-                .subject(subject)
-                .message(message)
-                .type(type)
-                .severity(severity)
-                .status(Alert.AlertStatus.PENDING)
-                .build();
+    AlertResponseDTO createAndSendAlert(String recipient, String subject,
+                                        String message, AlertType type);
 
-        alert = alertRepository.save(alert);
-        log.info("Alert persisted id={} companyId={} severity={} type={}", alert.getId(),
-                companyId, severity, type);
-        return alert;
-    }
+    AlertResponseDTO createAlertFromRequest(AlertRequestDTO request);
 
-    /** Backwards-compatible overload without explicit companyId/severity */
-    @Transactional
-    public Alert createAndSendAlert(String recipient, String subject,
-            String message, Alert.AlertType type) {
-        return createAndSendAlert(null, recipient, subject, message, type, Alert.AlertSeverity.WARNING);
-    }
+    AlertResponseDTO getAlertById(Long id);
 
-    public List<Alert> getAlertsByCompany(Long companyId) {
-        return alertRepository.findByCompanyIdOrderByCreatedAtDesc(companyId);
-    }
+    List<AlertResponseDTO> getAlertsByCompany(Long companyId);
 
-    public List<Alert> getAllAlerts() {
-        return alertRepository.findAllByOrderByCreatedAtDesc();
-    }
+    List<AlertResponseDTO> getAllAlerts();
 }

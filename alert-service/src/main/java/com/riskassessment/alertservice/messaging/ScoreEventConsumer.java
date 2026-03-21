@@ -1,6 +1,7 @@
 package com.riskassessment.alertservice.messaging;
 
-import com.riskassessment.alertservice.entity.Alert;
+import com.riskassessment.alertservice.enums.AlertSeverity;
+import com.riskassessment.alertservice.enums.AlertType;
 import com.riskassessment.alertservice.event.ScoreCalculatedEvent;
 import com.riskassessment.alertservice.service.AlertService;
 import lombok.RequiredArgsConstructor;
@@ -27,60 +28,43 @@ public class ScoreEventConsumer {
         if (score == null)
             return;
 
-        if (score.compareTo(new BigDecimal("20")) < 0) {
-            // CRITICAL — score < 20 → imminent default risk
+        boolean isCritical = score.compareTo(new BigDecimal("20")) < 0;
+        boolean isHigh = !isCritical && score.compareTo(new BigDecimal("40")) < 0;
+
+        if (isCritical || isHigh) {
+            String title = isCritical ? "⚠️ ALERTE CRITIQUE" : "⚠️ ALERTE RISQUE ÉLEVÉ";
+            String action = isCritical ? "Risque de défaut imminent. Intervention urgente requise." : "Une surveillance renforcée est recommandée.";
+            AlertSeverity severity = isCritical ? AlertSeverity.CRITICAL : AlertSeverity.HIGH;
+            String subject = (isCritical ? "🚨 RISQUE CRITIQUE" : "⚠️ RISQUE ÉLEVÉ") + " — Société #" + event.getCompanyId();
+
             alertService.createAndSendAlert(
                     event.getCompanyId(),
                     "risk@riskassessment.com",
-                    "🚨 RISQUE CRITIQUE — Société #" + event.getCompanyId(),
-                    buildCriticalMessage(event),
-                    Alert.AlertType.SCORE_CHANGE,
-                    Alert.AlertSeverity.CRITICAL);
-            log.warn("CRITICAL alert created for companyId={} score={}", event.getCompanyId(), score);
+                    subject,
+                    buildAlertMessage(event, title, action),
+                    AlertType.SCORE_CHANGE,
+                    severity);
 
-        } else if (score.compareTo(new BigDecimal("40")) < 0) {
-            // HIGH — score between 20 and 40
-            alertService.createAndSendAlert(
-                    event.getCompanyId(),
-                    "risk@riskassessment.com",
-                    "⚠️ RISQUE ÉLEVÉ — Société #" + event.getCompanyId(),
-                    buildHighRiskMessage(event),
-                    Alert.AlertType.SCORE_CHANGE,
-                    Alert.AlertSeverity.HIGH);
-            log.warn("HIGH alert created for companyId={} score={}", event.getCompanyId(), score);
-
+            log.warn("{} alert created for companyId={} score={}", severity, event.getCompanyId(), score);
         } else {
             log.debug("Score {} for company {} does not trigger an alert (threshold: < 40)",
                     score, event.getCompanyId());
         }
     }
 
-    private String buildCriticalMessage(ScoreCalculatedEvent e) {
+    private String buildAlertMessage(ScoreCalculatedEvent e, String title, String actionInfo) {
         return String.format(
-                "<h2>⚠️ ALERTE CRITIQUE</h2>" +
+                "<h2>%s</h2>" +
                         "<p>La société <strong>#%d</strong> a un score de <strong>%.0f/100</strong> " +
                         "(Notation: <strong>%s</strong>).</p>" +
-                        "<p>Risque de défaut imminent. Intervention urgente requise.</p>" +
+                        "<p>%s</p>" +
                         "<ul><li>Score financier: %.1f/40</li>" +
                         "<li>Score paiement: %.1f/35</li>" +
-                        "<li>Score contexte: %.1f/25</li></ul>" +
-                        "<p>Calculé le : %s</p>",
-                e.getCompanyId(), e.getOverallScore().doubleValue(), e.getRiskRating(),
+                        "<li>Score contexte: %.1f/25</li></ul>%s",
+                title, e.getCompanyId(), e.getOverallScore().doubleValue(), e.getRiskRating(),
+                actionInfo,
                 safe(e.getFinancialScore()), safe(e.getOperationalScore()), safe(e.getMarketScore()),
-                e.getCalculatedAt());
-    }
-
-    private String buildHighRiskMessage(ScoreCalculatedEvent e) {
-        return String.format(
-                "<h2>⚠️ ALERTE RISQUE ÉLEVÉ</h2>" +
-                        "<p>La société <strong>#%d</strong> a un score de <strong>%.0f/100</strong> " +
-                        "(Notation: <strong>%s</strong>).</p>" +
-                        "<p>Une surveillance renforcée est recommandée.</p>" +
-                        "<ul><li>Score financier: %.1f/40</li>" +
-                        "<li>Score paiement: %.1f/35</li>" +
-                        "<li>Score contexte: %.1f/25</li></ul>",
-                e.getCompanyId(), e.getOverallScore().doubleValue(), e.getRiskRating(),
-                safe(e.getFinancialScore()), safe(e.getOperationalScore()), safe(e.getMarketScore()));
+                e.getCalculatedAt() != null ? String.format("<p>Calculé le : %s</p>", e.getCalculatedAt()) : "");
     }
 
     private double safe(BigDecimal v) {

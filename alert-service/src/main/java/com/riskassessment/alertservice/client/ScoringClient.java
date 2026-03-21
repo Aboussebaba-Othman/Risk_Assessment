@@ -10,6 +10,6 @@ import java.util.List;
 @FeignClient(name = "scoring-service")
 public interface ScoringClient {
 
-    @GetMapping("/api/v1/scores/companies/{companyId}/history")
+    @GetMapping("/api/scoring/companies/{companyId}/history")
     List<ScoreDTO> getScoreHistory(@PathVariable Long companyId);
 }

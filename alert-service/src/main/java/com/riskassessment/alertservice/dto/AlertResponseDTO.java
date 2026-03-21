@@ -1,0 +1,21 @@
+package com.riskassessment.alertservice.dto;
+
+import com.riskassessment.alertservice.enums.AlertSeverity;
+import com.riskassessment.alertservice.enums.AlertStatus;
+import com.riskassessment.alertservice.enums.AlertType;
+import lombok.Data;
+
+import java.time.LocalDateTime;
+
+@Data
+public class AlertResponseDTO {
+    private Long id;
+    private Long companyId;
+    private String subject;
+    private String message;
+    private AlertType type;
+    private AlertSeverity severity;
+    private AlertStatus status;
+    private LocalDateTime createdAt;
+    private LocalDateTime sentAt;
+}

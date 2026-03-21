@@ -1,6 +1,7 @@
 package com.riskassessment.alertservice.job;
 
 import com.riskassessment.alertservice.entity.Alert;
+import com.riskassessment.alertservice.enums.AlertStatus;
 import com.riskassessment.alertservice.repository.AlertRepository;
 import com.riskassessment.alertservice.service.EmailService;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +25,7 @@ public class NotificationJob {
     @Scheduled(fixedDelay = 60000) // Run every minute
     public void processPendingAlerts() {
         log.debug("Checking for pending alerts...");
-        List<Alert> pendingAlerts = alertRepository.findByStatusOrderByCreatedAtAsc(Alert.AlertStatus.PENDING);
+        List<Alert> pendingAlerts = alertRepository.findByStatusOrderByCreatedAtAsc(AlertStatus.PENDING);
         for (Alert alert : pendingAlerts) {
             processAlert(alert);
         }
@@ -35,7 +36,7 @@ public class NotificationJob {
             log.info("Processing Alert ID: {}", alert.getId());
             emailService.sendEmail(alert.getRecipient(), alert.getSubject(), alert.getMessage());
 
-            alert.setStatus(Alert.AlertStatus.SENT);
+            alert.setStatus(AlertStatus.SENT);
             alert.setSentAt(LocalDateTime.now());
             alertRepository.save(alert);
             log.info("Alert ID: {} SENT successfully.", alert.getId());
@@ -51,10 +52,10 @@ public class NotificationJob {
         alert.setRetryCount(currentRetries + 1);
 
         if (alert.getRetryCount() >= MAX_RETRIES) {
-            alert.setStatus(Alert.AlertStatus.FAILED);
+            alert.setStatus(AlertStatus.FAILED);
             log.warn("Alert ID: {} marked as FAILED after {} attempts.", alert.getId(), MAX_RETRIES);
         } else {
-            alert.setStatus(Alert.AlertStatus.PENDING);
+            alert.setStatus(AlertStatus.PENDING);
         }
         alertRepository.save(alert);
     }
