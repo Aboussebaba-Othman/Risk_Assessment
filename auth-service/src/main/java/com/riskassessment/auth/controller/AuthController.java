@@ -3,7 +3,7 @@ package com.riskassessment.auth.controller;
 import com.riskassessment.auth.dto.AuthResponse;
 import com.riskassessment.auth.dto.LoginRequest;
 import com.riskassessment.auth.dto.RegisterRequest;
-import com.riskassessment.auth.service.AuthService;
+import com.riskassessment.auth.service.IAuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +18,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final AuthService authService;
+    private final IAuthService authService;
 
   
     @PostMapping("/register")

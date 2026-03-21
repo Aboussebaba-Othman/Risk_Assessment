@@ -1,4 +1,4 @@
-package com.riskassessment.auth.entity.enums;
+package com.riskassessment.auth.enums;
 
 public enum UserRole {
     ADMIN,

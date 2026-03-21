@@ -1,8 +1,11 @@
-package com.riskassessment.auth.service;
+package com.riskassessment.auth.service.impl;
 
 import com.riskassessment.auth.dto.AuthResponse;
 import com.riskassessment.auth.dto.LoginRequest;
 import com.riskassessment.auth.dto.RegisterRequest;
+import com.riskassessment.auth.exception.ExternalServiceException;
+import com.riskassessment.auth.exception.UnauthorizedException;
+import com.riskassessment.auth.service.IAuthService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,7 +21,7 @@ import java.util.Map;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class AuthService {
+public class AuthServiceImpl implements IAuthService {
 
     @Value("${keycloak.auth-server-url:http://keycloak:8080}")
     private String keycloakUrl;
@@ -74,7 +77,7 @@ public class AuthService {
             }
             return Map.of("message", "User registered successfully", "username", request.getUsername());
         } else {
-            throw new RuntimeException("Failed to create user in Keycloak: " + response.getStatusCode());
+            throw new ExternalServiceException("Failed to create user in Keycloak: " + response.getStatusCode());
         }
     }
 
@@ -108,7 +111,7 @@ public class AuthService {
                     .build();
         } catch (Exception e) {
             log.error("Login failed for user {}: {}", request.getUsername(), e.getMessage());
-            throw new RuntimeException("Invalid credentials or Keycloak unreachable: " + e.getMessage());
+            throw new UnauthorizedException("Invalid credentials or Keycloak unreachable: " + e.getMessage());
         }
     }
 

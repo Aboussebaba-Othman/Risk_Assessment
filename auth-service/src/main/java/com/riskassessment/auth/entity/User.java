@@ -1,6 +1,6 @@
 package com.riskassessment.auth.entity;
 
-import com.riskassessment.auth.entity.enums.UserRole;
+import com.riskassessment.auth.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
