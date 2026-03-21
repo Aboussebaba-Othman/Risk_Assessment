@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import jakarta.validation.constraints.NotNull;
+
 import java.math.BigDecimal;
 
 /**
@@ -18,6 +20,7 @@ import java.math.BigDecimal;
 public class FinancialDataDto {
     private Long id;
     private Long companyId;
+    @NotNull(message = "Fiscal Year is required")
     private Integer fiscalYear;
     private String periodEndDate;
 

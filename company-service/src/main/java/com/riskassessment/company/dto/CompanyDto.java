@@ -1,6 +1,7 @@
 package com.riskassessment.company.dto;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,8 +18,13 @@ import java.time.LocalDateTime;
 public class CompanyDto {
     private Long id;
     private Long tenantId;
+    
+    @NotBlank(message = "Name is required")
     private String name;
+    
+    @NotBlank(message = "Registration Number is required")
     private String registrationNumber; // RC (Registre de Commerce)
+    
     private String taxId; // ICE (Identifiant Commun de l'Entreprise)
     private String legalForm; // Forme juridique (SARL, SA, etc.)
 
@@ -27,9 +33,10 @@ public class CompanyDto {
 
     private String industrySector;
 
-    private LocalDate incorporationDate; // Date de création (pour ajustement ancienneté CDC)
+    private LocalDate incorporationDate; // Date de création
     private BigDecimal shareCapital; // Capital social
 
+    @NotBlank(message = "Country is required")
     private String country;
     private String city;
     private String address;
