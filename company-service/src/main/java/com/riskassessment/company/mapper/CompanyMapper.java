@@ -1,5 +1,7 @@
-package com.riskassessment.company.dto;
+package com.riskassessment.company.mapper;
 
+import com.riskassessment.company.dto.CompanyDto;
+import com.riskassessment.company.dto.FinancialDataDto;
 import com.riskassessment.company.entity.Company;
 import com.riskassessment.company.entity.FinancialData;
 import org.mapstruct.Mapper;

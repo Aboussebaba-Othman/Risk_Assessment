@@ -7,6 +7,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -17,40 +18,44 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, Object>> handleValidationErrors(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ErrorResponse> handleValidationErrors(MethodArgumentNotValidException ex, WebRequest request) {
         Map<String, String> fieldErrors = new HashMap<>();
         for (FieldError error : ex.getBindingResult().getFieldErrors()) {
             fieldErrors.put(error.getField(), error.getDefaultMessage());
         }
-        return buildResponse(HttpStatus.BAD_REQUEST, "Validation failed", fieldErrors);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(error(HttpStatus.BAD_REQUEST, "Validation failed", request, fieldErrors));
     }
 
     @ExceptionHandler(DuplicateResourceException.class)
-    public ResponseEntity<Map<String, Object>> handleDuplicateResource(DuplicateResourceException ex) {
+    public ResponseEntity<ErrorResponse> handleDuplicateResource(DuplicateResourceException ex, WebRequest request) {
         log.warn("Duplicate resource: {}", ex.getMessage());
-        return buildResponse(HttpStatus.CONFLICT, ex.getMessage(), null);
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(error(HttpStatus.CONFLICT, ex.getMessage(), request, null));
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleNotFound(ResourceNotFoundException ex) {
+    public ResponseEntity<ErrorResponse> handleNotFound(ResourceNotFoundException ex, WebRequest request) {
         log.warn("Resource not found: {}", ex.getMessage());
-        return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), null);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(error(HttpStatus.NOT_FOUND, ex.getMessage(), request, null));
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, Object>> handleGeneric(Exception ex) {
+    public ResponseEntity<ErrorResponse> handleGeneric(Exception ex, WebRequest request) {
         log.error("Unexpected error: {}", ex.getMessage(), ex);
-        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An internal error occurred", null);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(error(HttpStatus.INTERNAL_SERVER_ERROR, "An internal error occurred", request, null));
     }
 
-    private ResponseEntity<Map<String, Object>> buildResponse(HttpStatus status, String message, Object details) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", LocalDateTime.now().toString());
-        body.put("status", status.value());
-        body.put("error", status.getReasonPhrase());
-        body.put("message", message);
-        if (details != null)
-            body.put("validationErrors", details);
-        return ResponseEntity.status(status).body(body);
+    private ErrorResponse error(HttpStatus status, String message, WebRequest request, Map<String, String> validationErrors) {
+        return new ErrorResponse(
+                LocalDateTime.now(),
+                status.value(),
+                status.getReasonPhrase(),
+                message,
+                request.getDescription(false).replace("uri=", ""),
+                validationErrors
+        );
     }
 }

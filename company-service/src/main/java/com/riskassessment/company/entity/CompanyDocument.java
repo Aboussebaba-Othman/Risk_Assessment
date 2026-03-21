@@ -1,6 +1,6 @@
 package com.riskassessment.company.entity;
 
-import com.riskassessment.company.entity.enums.DocumentType;
+import com.riskassessment.company.enums.DocumentType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -1,4 +1,4 @@
-package com.riskassessment.company.entity.enums;
+package com.riskassessment.company.enums;
 
 public enum RiskLevel {
     LOW,

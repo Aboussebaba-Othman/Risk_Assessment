@@ -1,8 +1,8 @@
 package com.riskassessment.company.repository;
 
 import com.riskassessment.company.entity.Company;
-import com.riskassessment.company.entity.enums.CompanyStatus;
-import com.riskassessment.company.entity.enums.RiskLevel;
+import com.riskassessment.company.enums.CompanyStatus;
+import com.riskassessment.company.enums.RiskLevel;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

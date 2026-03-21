@@ -1,11 +1,11 @@
 package com.riskassessment.company.service.impl;
 
 import com.riskassessment.company.dto.CompanyDto;
-import com.riskassessment.company.dto.CompanyMapper;
+import com.riskassessment.company.mapper.CompanyMapper;
 import com.riskassessment.company.dto.FinancialDataDto;
 import com.riskassessment.company.entity.Company;
 import com.riskassessment.company.entity.FinancialData;
-import com.riskassessment.company.entity.enums.CompanyStatus;
+import com.riskassessment.company.enums.CompanyStatus;
 import com.riskassessment.company.exception.DuplicateResourceException;
 import com.riskassessment.company.exception.ResourceNotFoundException;
 import com.riskassessment.company.repository.CompanyRepository;
@@ -88,10 +88,7 @@ public class CompanyServiceImpl implements CompanyService {
     @Override
     @Transactional
     public FinancialDataDto addFinancialData(Long companyId, FinancialDataDto dto) {
-        Company company = companyRepository.findById(companyId)
-                .orElseThrow(() -> new ResourceNotFoundException("Company not found: " + companyId));
-
-        Integer targetYear = dto.getFiscalYear() != null ? dto.getFiscalYear() : 2024;
+        Integer targetYear = dto.getFiscalYear() != null ? dto.getFiscalYear() : 2026;
         FinancialData fd = financialDataRepository.findByCompanyIdAndFiscalYear(companyId, targetYear)
                 .orElse(new FinancialData());
 

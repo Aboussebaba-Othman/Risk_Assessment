@@ -1,7 +1,7 @@
 package com.riskassessment.company.entity;
 
-import com.riskassessment.company.entity.enums.CompanyStatus;
-import com.riskassessment.company.entity.enums.RiskLevel;
+import com.riskassessment.company.enums.CompanyStatus;
+import com.riskassessment.company.enums.RiskLevel;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -1,7 +1,7 @@
 package com.riskassessment.company.repository;
 
 import com.riskassessment.company.entity.CompanyDocument;
-import com.riskassessment.company.entity.enums.DocumentType;
+import com.riskassessment.company.enums.DocumentType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -1,8 +1,6 @@
-package com.riskassessment.company.entity.enums;
+package com.riskassessment.company.enums;
 
-/**
- * Type of document uploaded for a company
- */
+
 public enum DocumentType {
     FINANCIAL_STATEMENT,
     CONTRACT,
