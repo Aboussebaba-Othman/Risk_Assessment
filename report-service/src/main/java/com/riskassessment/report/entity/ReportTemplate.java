@@ -10,9 +10,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.LocalDateTime;
 
-/**
- * Report template stored in MongoDB.
- */
+
 @Document(collection = "report_templates")
 @Data
 @NoArgsConstructor

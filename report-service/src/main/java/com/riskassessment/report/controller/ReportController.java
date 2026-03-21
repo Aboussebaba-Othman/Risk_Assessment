@@ -1,6 +1,6 @@
 package com.riskassessment.report.controller;
 
-import com.riskassessment.report.service.ReportGenerationService;
+import com.riskassessment.report.service.IReportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class ReportController {
 
-    private final ReportGenerationService reportGenerationService;
+    private final IReportService reportGenerationService;
 
     @GetMapping("/company/{companyId}/download")
     public ResponseEntity<byte[]> downloadCompanyReport(@PathVariable Long companyId) {

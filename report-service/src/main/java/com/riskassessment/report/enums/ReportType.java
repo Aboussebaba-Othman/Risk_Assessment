@@ -1,4 +1,4 @@
-package com.riskassessment.report.entity.enums;
+package com.riskassessment.report.enums;
 
 public enum ReportType {
     PDF,

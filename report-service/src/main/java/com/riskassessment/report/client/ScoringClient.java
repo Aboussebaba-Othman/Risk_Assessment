@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 @FeignClient(name = "scoring-service")
 public interface ScoringClient {
 
-    @GetMapping("/api/v1/scores/companies/{companyId}/latest")
+    @GetMapping("/api/scoring/companies/{companyId}/latest")
     ScoreDTO getLatestScore(@PathVariable("companyId") Long companyId);
 
-    @GetMapping("/api/v1/scores/companies/{companyId}/recommendation")
+    @GetMapping("/api/scoring/companies/{companyId}/recommendation")
     RecommendationDTO getRecommendation(@PathVariable("companyId") Long companyId);
 }
