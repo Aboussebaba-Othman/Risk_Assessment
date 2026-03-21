@@ -1,14 +1,17 @@
-package com.riskassessment.scoring.service;
+package com.riskassessment.scoring.service.impl;
 
-import com.riskassessment.scoring.client.AlertClient;
-import com.riskassessment.scoring.client.CompanyClient;
+import com.riskassessment.scoring.gateway.AlertGateway;
+import com.riskassessment.scoring.gateway.CompanyGateway;
 import com.riskassessment.scoring.dto.*;
 import com.riskassessment.scoring.engine.RecommendationEngine;
 import com.riskassessment.scoring.entity.Score;
-import com.riskassessment.scoring.entity.enums.RiskLevel;
-import com.riskassessment.scoring.entity.enums.RiskRating;
+import com.riskassessment.scoring.enums.RiskLevel;
+import com.riskassessment.scoring.enums.RiskRating;
 import com.riskassessment.scoring.repository.ScoreRepository;
 import com.riskassessment.scoring.strategy.ScoringStrategy;
+import com.riskassessment.scoring.exception.ResourceNotFoundException;
+import com.riskassessment.scoring.mapper.ScoringMapper;
+import com.riskassessment.scoring.service.IScoringService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,23 +23,24 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class ScoringService {
+public class ScoringServiceImpl implements IScoringService {
 
     private final ScoreRepository scoreRepository;
-    private final CompanyClient companyClient;
-    private final AlertClient alertClient;
+    private final CompanyGateway companyGateway;
+    private final AlertGateway alertGateway;
     private final ScoringStrategy scoringStrategy;
     private final RecommendationEngine recommendationEngine;
+    private final ScoringMapper scoringMapper;
 
     public Score calculateScore(Long companyId) {
         log.info("Starting CDC-compliant score calculation for companyId: {}", companyId);
 
         // 1. Fetch financial data from company-service
-        CompanyFinancialsDTO raw = companyClient.getLatestFinancialData(companyId);
-        FinancialDataDTO financials = mapToFinancialDataDTO(raw);
+        CompanyFinancialsDTO raw = companyGateway.getLatestFinancialData(companyId);
+        FinancialDataDTO financials = scoringMapper.toFinancialDataDTO(raw);
 
         // 2. Fetch company info (sector, incorporation date, etc.)
-        CompanyDTO company = companyClient.getCompanyInfo(companyId);
+        CompanyDTO company = companyGateway.getCompanyInfo(companyId);
 
         // 3. Calculate score via CDC 15-ratio strategy
         ScoringResult result = scoringStrategy.calculate(company, financials);
@@ -89,58 +93,42 @@ public class ScoringService {
 
     public Score getLatestScore(Long companyId) {
         return scoreRepository.findTopByCompanyIdOrderByScoredAtDesc(companyId)
-                .orElseThrow(() -> new RuntimeException("No score found for company ID: " + companyId));
+                .orElseThrow(() -> new ResourceNotFoundException("No score found for company ID: " + companyId));
     }
 
     public List<Score> getScoreHistory(Long companyId) {
         return scoreRepository.findByCompanyIdOrderByScoredAtDesc(companyId);
     }
 
+    public List<Score> getAllScores() {
+        return scoreRepository.findAll();
+    }
+
     public RecommendationDTO getRecommendation(Long companyId) {
         Score latestScore = getLatestScore(companyId);
-        int score = latestScore.getOverallScore().intValue();
-        RiskLevel riskLevel = latestScore.getRiskLevel();
-        return recommendationEngine.recommendWithJustification(score, riskLevel, List.of());
+        
+        // Fetch financial data to extract specific red flags
+        CompanyFinancialsDTO raw = companyGateway.getLatestFinancialData(companyId);
+        FinancialDataDTO financials = scoringMapper.toFinancialDataDTO(raw);
+        
+        List<String> warnings = new java.util.ArrayList<>();
+        if (financials.getEquity() != null && financials.getEquity().compareTo(BigDecimal.ZERO) < 0) {
+            warnings.add("Alerte: Capitaux propres négatifs détectés.");
+        }
+        if (financials.getLitigationCount() != null && financials.getLitigationCount() > 0) {
+            warnings.add("Alerte: Présence de litiges actifs (" + financials.getLitigationCount() + ").");
+        }
+        if (financials.getNetResult() != null && financials.getNetResult().compareTo(BigDecimal.ZERO) < 0) {
+            warnings.add("Alerte: Résultat net déficitaire sur le dernier exercice.");
+        }
+        if (financials.getLatePayments() != null && financials.getLatePayments() > 0) {
+            warnings.add("Alerte: Historique de retards de paiement constaté.");
+        }
+
+        return recommendationEngine.recommendWithJustification(latestScore, warnings);
     }
 
     // PRIVATE HELPERS
-
-    private FinancialDataDTO mapToFinancialDataDTO(CompanyFinancialsDTO src) {
-        if (src == null)
-            return new FinancialDataDTO();
-        return FinancialDataDTO.builder()
-                // Actif
-                .totalAssets(src.getTotalAssets())
-                .currentAssets(src.getCurrentAssets())
-                .fixedAssets(src.getFixedAssets())
-                .inventory(src.getInventory())
-                .accountsReceivable(src.getAccountsReceivable())
-                .cash(src.getCash())
-                // Passif
-                .totalLiabilities(src.getTotalLiabilities())
-                .currentLiabilities(src.getCurrentLiabilities())
-                .longTermDebt(src.getLongTermDebt())
-                .accountsPayable(src.getAccountsPayable())
-                .equity(src.getEquity())
-                // Résultat
-                .revenue(src.getRevenue())
-                .netResult(src.getNetResult())
-                .operatingIncome(src.getOperatingIncome())
-                .financialExpenses(src.getFinancialExpenses())
-                .ebitda(src.getEbitda())
-                .costOfGoodsSold(src.getCostOfGoodsSold())
-                // Paiement
-                .totalPayments(src.getTotalPayments())
-                .onTimePayments(src.getOnTimePayments())
-                .latePayments(src.getLatePayments())
-                .averagePaymentDelay(src.getAveragePaymentDelay())
-                .unpaidCount(src.getUnpaidCount())
-                .litigationCount(src.getLitigationCount())
-                // Contexte
-                .shareCapital(src.getShareCapital())
-                .employeeCount(src.getEmployeeCount())
-                .build();
-    }
 
     // Risk Level mapping (section 3.3).
     private RiskLevel determineRiskLevel(int score) {
@@ -181,20 +169,16 @@ public class ScoringService {
     }
 
     private void triggerRiskAlert(Long companyId, int score, RiskLevel level) {
-        try {
-            AlertRequestDTO alertRequest = AlertRequestDTO.builder()
-                    .recipient("risk@riskassessment.com")
-                    .subject(String.format("ALERTE RISQUE %s — Société #%d", level.name(), companyId))
-                    .message(String.format(
-                            "Le score de la société #%d est tombé à %d/100 (Niveau: %s). " +
-                                    "Une action immédiate est requise.",
-                            companyId, score, level.name()))
-                    .type("SCORE_CHANGE")
-                    .build();
-            alertClient.triggerAlert(alertRequest);
-            log.info("Risk alert triggered for company {} (score={}, level={})", companyId, score, level);
-        } catch (Exception e) {
-            log.error("Failed to trigger alert for company {}: {}", companyId, e.getMessage());
-        }
+        AlertRequestDTO alertRequest = AlertRequestDTO.builder()
+                .recipient("risk@riskassessment.com")
+                .subject(String.format("ALERTE RISQUE %s — Société #%d", level.name(), companyId))
+                .message(String.format(
+                        "Le score de la société #%d est tombé à %d/100 (Niveau: %s). " +
+                                "Une action immédiate est requise.",
+                        companyId, score, level.name()))
+                .type("SCORE_CHANGE")
+                .build();
+        alertGateway.triggerAlert(alertRequest);
+        log.info("Risk alert triggered for company {} (score={}, level={})", companyId, score, level);
     }
 }

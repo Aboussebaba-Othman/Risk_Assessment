@@ -1,7 +1,7 @@
 package com.riskassessment.scoring.entity;
 
-import com.riskassessment.scoring.entity.enums.RiskLevel;
-import com.riskassessment.scoring.entity.enums.RiskRating;
+import com.riskassessment.scoring.enums.RiskLevel;
+import com.riskassessment.scoring.enums.RiskRating;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

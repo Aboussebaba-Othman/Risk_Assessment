@@ -1,4 +1,4 @@
-package com.riskassessment.scoring.entity.enums;
+package com.riskassessment.scoring.enums;
 
 public enum RiskLevel {
     EXCELLENT,

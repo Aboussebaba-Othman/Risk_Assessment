@@ -9,12 +9,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 @FeignClient(name = "company-service")
 public interface CompanyClient {
 
-    @GetMapping("/api/v1/companies/{id}")
+    @GetMapping("/companies/{id}")
     CompanyDTO getCompanyById(@PathVariable("id") Long id);
 
-    @GetMapping("/api/v1/companies/{id}")
+    @GetMapping("/companies/{id}")
     CompanyDTO getCompanyInfo(@PathVariable("id") Long id);
 
-    @GetMapping("/api/v1/companies/{companyId}/financials/latest")
+    @GetMapping("/companies/{companyId}/financials/latest")
     CompanyFinancialsDTO getLatestFinancialData(@PathVariable("companyId") Long companyId);
 }

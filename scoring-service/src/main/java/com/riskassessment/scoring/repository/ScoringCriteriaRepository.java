@@ -1,7 +1,7 @@
 package com.riskassessment.scoring.repository;
 
 import com.riskassessment.scoring.entity.ScoringCriteria;
-import com.riskassessment.scoring.entity.enums.ScoringCategory;
+import com.riskassessment.scoring.enums.ScoringCategory;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

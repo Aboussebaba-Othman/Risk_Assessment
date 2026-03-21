@@ -1,6 +1,6 @@
 package com.riskassessment.scoring.dto;
 
-import com.riskassessment.scoring.entity.enums.RiskLevel;
+import com.riskassessment.scoring.enums.RiskLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

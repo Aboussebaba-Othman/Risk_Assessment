@@ -2,7 +2,7 @@ package com.riskassessment.scoring.controller;
 
 import com.riskassessment.scoring.dto.RecommendationDTO;
 import com.riskassessment.scoring.entity.Score;
-import com.riskassessment.scoring.service.ScoringService;
+import com.riskassessment.scoring.service.IScoringService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,11 +10,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/scores")
+@RequestMapping({"/api/scoring", "/api/v1/scores"})
 @RequiredArgsConstructor
 public class ScoringController {
 
-    private final ScoringService scoringService;
+    private final IScoringService scoringService;
 
     
     @PostMapping("/calculate/{companyId}")
@@ -38,5 +38,10 @@ public class ScoringController {
     @GetMapping("/companies/{companyId}/history")
     public ResponseEntity<List<Score>> getScoreHistory(@PathVariable Long companyId) {
         return ResponseEntity.ok(scoringService.getScoreHistory(companyId));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<Score>> getAllScores() {
+        return ResponseEntity.ok(scoringService.getAllScores());
     }
 }
