@@ -1,6 +1,6 @@
 package com.riskassessment.alertservice.service.impl;
 
-import com.riskassessment.alertservice.dto.AlertMapper;
+import com.riskassessment.alertservice.mapper.AlertMapper;
 import com.riskassessment.alertservice.dto.AlertRequestDTO;
 import com.riskassessment.alertservice.dto.AlertResponseDTO;
 import com.riskassessment.alertservice.entity.Alert;

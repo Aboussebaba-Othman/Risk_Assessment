@@ -1,5 +1,6 @@
-package com.riskassessment.alertservice.dto;
+package com.riskassessment.alertservice.mapper;
 
+import com.riskassessment.alertservice.dto.AlertResponseDTO;
 import com.riskassessment.alertservice.entity.Alert;
 import org.mapstruct.Mapper;
 
