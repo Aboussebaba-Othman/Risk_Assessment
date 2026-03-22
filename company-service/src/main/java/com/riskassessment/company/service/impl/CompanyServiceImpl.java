@@ -8,6 +8,7 @@ import com.riskassessment.company.entity.FinancialData;
 import com.riskassessment.company.enums.CompanyStatus;
 import com.riskassessment.company.exception.DuplicateResourceException;
 import com.riskassessment.company.exception.ResourceNotFoundException;
+import com.riskassessment.company.repository.CompanyRepository;
 import com.riskassessment.company.repository.FinancialDataRepository;
 import com.riskassessment.company.security.SecurityUtils;
 import com.riskassessment.company.service.CompanyService;
@@ -15,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.riskassessment.company.repository.CompanyRepository;
 
 import java.time.LocalDate;
 import java.util.List;
