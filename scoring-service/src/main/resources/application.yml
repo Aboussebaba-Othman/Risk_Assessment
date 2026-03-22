@@ -47,3 +47,25 @@ logging:
   level:
     root: INFO
     com.riskassessment.scoring: DEBUG
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      company-service:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+        register-health-indicator: true
+      alert-service:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+        register-health-indicator: true
+  timelimiter:
+    instances:
+      company-service:
+        timeout-duration: 3s
+      alert-service:
+        timeout-duration: 3s

@@ -3,6 +3,7 @@ package com.riskassessment.scoring.gateway;
 import com.riskassessment.scoring.client.AlertClient;
 import com.riskassessment.scoring.dto.AlertRequestDTO;
 import com.riskassessment.scoring.exception.ExternalServiceException;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -14,13 +15,18 @@ public class AlertGateway {
 
     private final AlertClient alertClient;
 
+    @CircuitBreaker(name = "alert-service", fallbackMethod = "fallbackTriggerAlert")
     public void triggerAlert(AlertRequestDTO request) {
         try {
             alertClient.triggerAlert(request);
-            log.info("Risk alert systematically dispatched to the notification engine via gateway");
         } catch (Exception e) {
-            log.error("Failed to propagate automated high-urgency alert to alert-service: {}", e.getMessage());
-            throw new ExternalServiceException("Cannot dispatch communication alert", e);
+            log.warn("Failed to trigger alert for recipient={}: {}", request.getRecipient(), e.getMessage());
+            throw new ExternalServiceException("Cannot trigger alert in alert-service", e);
         }
+    }
+
+    public void fallbackTriggerAlert(AlertRequestDTO request, Exception ex) {
+        log.error("Circuit breaker OPEN for alert-service [triggerAlert] recipient={}: {}", request.getRecipient(), ex.getMessage());
+        log.warn("Alert NOT sent due to alert-service unavailability. recipient={}", request.getRecipient());
     }
 }
