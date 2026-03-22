@@ -19,6 +19,7 @@ public class ReportController {
 
     @GetMapping("/company/{companyId}/download")
     public ResponseEntity<byte[]> downloadCompanyReport(@PathVariable Long companyId) {
+        
         byte[] pdfContent = reportGenerationService.generateCompanyReport(companyId);
 
         return ResponseEntity.ok()

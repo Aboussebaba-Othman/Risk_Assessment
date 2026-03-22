@@ -3,6 +3,7 @@ package com.riskassessment.report.gateway;
 import com.riskassessment.report.client.CompanyClient;
 import com.riskassessment.report.dto.CompanyDTO;
 import com.riskassessment.report.exception.ExternalServiceException;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -14,6 +15,7 @@ public class CompanyGateway {
 
     private final CompanyClient companyClient;
 
+    @CircuitBreaker(name = "company-service", fallbackMethod = "fallbackGetCompanyById")
     public CompanyDTO getCompanyById(Long companyId) {
         try {
             return companyClient.getCompanyById(companyId);
@@ -21,5 +23,10 @@ public class CompanyGateway {
             log.warn("Failed to fetch company data for companyId={}: {}", companyId, e.getMessage());
             throw new ExternalServiceException("Cannot retrieve company data from company-service", e);
         }
+    }
+
+    public CompanyDTO fallbackGetCompanyById(Long companyId, Exception ex) {
+        log.error("Circuit breaker OPEN for company-service [getCompanyById] companyId={}: {}", companyId, ex.getMessage());
+        throw new ExternalServiceException("company-service is currently unavailable (circuit open)", ex);
     }
 }

@@ -10,6 +10,7 @@ import com.riskassessment.report.gateway.AnalysisGateway;
 import com.riskassessment.report.gateway.CompanyGateway;
 import com.riskassessment.report.gateway.ScoringGateway;
 import com.riskassessment.report.repository.ReportRepository;
+import com.riskassessment.report.security.UserContextHolder;
 import com.riskassessment.report.service.IReportService;
 import com.riskassessment.report.service.PdfGeneratorService;
 import lombok.RequiredArgsConstructor;
@@ -58,7 +59,8 @@ public class ReportServiceImpl implements IReportService {
             report.setReportType("FULL_RISK_ASSESSMENT");
             report.setFormat("PDF");
             report.setStatus("GENERATED");
-            report.setGeneratedBy(1L);
+            Long userId = UserContextHolder.getUserId();
+            report.setGeneratedBy(userId != null ? userId : 1L);
             reportRepository.save(report);
         } catch (Exception e) {
             log.error("Failed to persist report metadata for companyId={}: {}", companyId, e.getMessage());
