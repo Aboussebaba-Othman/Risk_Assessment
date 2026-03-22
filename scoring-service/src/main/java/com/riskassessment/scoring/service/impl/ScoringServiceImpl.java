@@ -11,6 +11,7 @@ import com.riskassessment.scoring.repository.ScoreRepository;
 import com.riskassessment.scoring.strategy.ScoringStrategy;
 import com.riskassessment.scoring.exception.ResourceNotFoundException;
 import com.riskassessment.scoring.mapper.ScoringMapper;
+import com.riskassessment.scoring.security.SecurityUtils;
 import com.riskassessment.scoring.service.IScoringService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,7 +51,8 @@ public class ScoringServiceImpl implements IScoringService {
         // 4. Persist score with all sub-scores
         Score score = new Score();
         score.setCompanyId(companyId);
-        score.setTenantId(company.getTenantId() != null ? company.getTenantId() : 1L);
+        Long currentUserId = SecurityUtils.getCurrentUserId();
+        score.setTenantId(company.getTenantId() != null ? company.getTenantId() : (currentUserId != null ? currentUserId : 1L));
         score.setOverallScore(new BigDecimal(calculatedScore));
         score.setFinancialScore(new BigDecimal(result.getFinancialScore())); // 40% — santé financière
         score.setOperationalScore(new BigDecimal(result.getPaymentScore())); // 35% — comportement paiement
