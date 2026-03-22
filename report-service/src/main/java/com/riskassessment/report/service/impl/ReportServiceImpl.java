@@ -10,7 +10,7 @@ import com.riskassessment.report.gateway.AnalysisGateway;
 import com.riskassessment.report.gateway.CompanyGateway;
 import com.riskassessment.report.gateway.ScoringGateway;
 import com.riskassessment.report.repository.ReportRepository;
-import com.riskassessment.report.security.UserContextHolder;
+import com.riskassessment.report.security.SecurityUtils;
 import com.riskassessment.report.service.IReportService;
 import com.riskassessment.report.service.PdfGeneratorService;
 import lombok.RequiredArgsConstructor;
@@ -56,11 +56,14 @@ public class ReportServiceImpl implements IReportService {
             Report report = new Report();
             report.setCompanyId(companyId);
             report.setReportDate(LocalDateTime.now());
-            report.setReportType("FULL_RISK_ASSESSMENT");
             report.setFormat("PDF");
             report.setStatus("GENERATED");
-            Long userId = UserContextHolder.getUserId();
-            report.setGeneratedBy(userId != null ? userId : 1L);
+            Long userId = SecurityUtils.getCurrentUserId();
+            if (userId == null) {
+                log.warn("Report generated without an authenticated numeric user ID. Defaulting to SYSTEM (1L)");
+                userId = 1L;
+            }
+            report.setGeneratedBy(userId);
             reportRepository.save(report);
         } catch (Exception e) {
             log.error("Failed to persist report metadata for companyId={}: {}", companyId, e.getMessage());
