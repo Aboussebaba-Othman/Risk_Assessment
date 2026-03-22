@@ -5,6 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 import com.riskassessment.alertservice.enums.AlertStatus;
@@ -17,6 +20,7 @@ import com.riskassessment.alertservice.enums.AlertSeverity;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EntityListeners(AuditingEntityListener.class)
 public class Alert {
 
     @Id
@@ -56,14 +60,18 @@ public class Alert {
     @Column(columnDefinition = "TEXT")
     private String errorMessage;
 
+    @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @CreatedBy
+    @Column(name = "created_by", updatable = false)
+    private Long createdBy;
 
     private LocalDateTime sentAt;
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
         if (status == null)
             status = AlertStatus.PENDING;
     }
