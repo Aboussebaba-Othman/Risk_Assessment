@@ -13,6 +13,7 @@ import com.riskassessment.analysis.repository.FinancialAnalysisRepository;
 import com.riskassessment.analysis.service.FinancialAnalysisService;
 import com.riskassessment.analysis.service.SwotAnalysisService;
 import com.riskassessment.analysis.service.SwotCalculationService;
+import com.riskassessment.analysis.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -60,7 +61,8 @@ public class SwotAnalysisServiceImpl implements SwotAnalysisService {
 
         FinancialAnalysis analysis = new FinancialAnalysis();
         analysis.setCompanyId(companyId);
-        analysis.setTenantId(1L);
+        Long currentUserId = SecurityUtils.getCurrentUserId();
+        analysis.setTenantId(currentUserId != null ? currentUserId : 1L);
         analysis.setAnalysisType(AnalysisType.SWOT);
         analysis.setPeriodStart(LocalDate.now().minusMonths(12));
         analysis.setPeriodEnd(LocalDate.now());
