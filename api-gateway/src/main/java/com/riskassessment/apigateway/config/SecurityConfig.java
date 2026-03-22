@@ -18,7 +18,7 @@ public class SecurityConfig {
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .cors(cors -> cors.configurationSource(request -> {
                     var corsConfig = new CorsConfiguration();
-                    corsConfig.setAllowedOrigins(List.of("http://localhost:4200")); // Angular default
+                    corsConfig.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:4200", "*"));
                     corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
                     corsConfig.setAllowedHeaders(List.of("*"));
                     return corsConfig;
