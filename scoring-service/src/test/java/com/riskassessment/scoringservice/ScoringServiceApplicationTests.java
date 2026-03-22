@@ -3,6 +3,8 @@ package com.riskassessment.scoringservice;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import org.springframework.test.context.ActiveProfiles;
+
 @SpringBootTest(properties = {
 		"eureka.client.enabled=false",
 		"spring.cloud.config.enabled=false",
@@ -11,6 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 		"spring.datasource.driverClassName=org.h2.Driver",
 		"spring.jpa.database-platform=org.hibernate.dialect.H2Dialect"
 })
+@ActiveProfiles("test")
 class ScoringServiceApplicationTests {
 
 	@Test
