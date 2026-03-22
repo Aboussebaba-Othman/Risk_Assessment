@@ -8,13 +8,14 @@ import com.riskassessment.company.entity.FinancialData;
 import com.riskassessment.company.enums.CompanyStatus;
 import com.riskassessment.company.exception.DuplicateResourceException;
 import com.riskassessment.company.exception.ResourceNotFoundException;
-import com.riskassessment.company.repository.CompanyRepository;
 import com.riskassessment.company.repository.FinancialDataRepository;
+import com.riskassessment.company.security.SecurityUtils;
 import com.riskassessment.company.service.CompanyService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.riskassessment.company.repository.CompanyRepository;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -39,7 +40,10 @@ public class CompanyServiceImpl implements CompanyService {
         }
 
         Company company = companyMapper.toEntity(dto);
-        if (company.getTenantId() == null) company.setTenantId(1L);
+        if (company.getTenantId() == null) {
+            Long currentUserId = SecurityUtils.getCurrentUserId();
+            company.setTenantId(currentUserId != null ? currentUserId : 1L);
+        }
         company.setCurrency("MAD");
         
         try {
