@@ -13,15 +13,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
-/**
- * Security configuration for Company Service.
- *
- * Authentication is handled by the API Gateway (which validates the JWT from
- * auth-service).
- * Inside the cluster, services trust requests that have already passed gateway
- * auth.
- * For local/dev, we permit all internal API calls to avoid Keycloak dependency.
- */
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
@@ -35,9 +27,7 @@ public class SecurityConfig {
                                 .sessionManagement(session -> session
                                                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                                 .authorizeHttpRequests(auth -> auth
-                                                // Allow actuator health checks
                                                 .requestMatchers("/actuator/**").permitAll()
-                                                // Allow all API calls — auth is enforced at the API Gateway level
                                                 .anyRequest().permitAll());
 
                 return http.build();

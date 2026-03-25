@@ -9,10 +9,7 @@ import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
 
-/**
- * Full financial data DTO — maps directly to FinancialData entity.
- * Contains all fields required for the 15 CDC financial ratios.
- */
+
 @Data
 @Builder
 @NoArgsConstructor
