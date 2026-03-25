@@ -7,15 +7,13 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
-/**
- * DTO received from company-service /api/v1/companies/{id}/financials/latest.
- * Maps directly to the FinancialData entity in company-service.
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class CompanyFinancialsDTO {
+    private Integer fiscalYear;
+    private String periodEndDate;
 
     // ACTIF
     private BigDecimal totalAssets;

@@ -13,7 +13,9 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 import java.time.LocalDate;
 import java.util.List;
 
-@Mapper(componentModel = "spring", imports = {LocalDate.class})
+import org.mapstruct.ReportingPolicy;
+
+@Mapper(componentModel = "spring", imports = {LocalDate.class}, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface CompanyMapper {
 
     @Mapping(target = "industrySector", source = "industry")

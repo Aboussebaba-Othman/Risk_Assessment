@@ -71,6 +71,7 @@ public class Company {
     @Column(name = "annual_revenue", precision = 15, scale = 2)
     private BigDecimal annualRevenue;
 
+    @Builder.Default
     @Column(length = 3)
     private String currency = "USD";
 
@@ -83,6 +84,7 @@ public class Company {
     @Column(name = "legal_form", length = 50)
     private String legalForm; // Forme juridique (SARL, SA, etc.)
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private CompanyStatus status = CompanyStatus.ACTIVE;
@@ -107,6 +109,7 @@ public class Company {
     @Column(name = "updated_by")
     private Long updatedBy;
 
+    @Builder.Default
     @OneToMany(mappedBy = "company", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CompanyDocument> documents = new ArrayList<>();
 

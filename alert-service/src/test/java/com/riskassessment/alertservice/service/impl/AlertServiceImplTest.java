@@ -1,21 +1,19 @@
 package com.riskassessment.alertservice.service.impl;
 
-import com.riskassessment.alertservice.dto.AlertRequestDTO;
 import com.riskassessment.alertservice.dto.AlertResponseDTO;
 import com.riskassessment.alertservice.entity.Alert;
 import com.riskassessment.alertservice.enums.AlertSeverity;
-import com.riskassessment.alertservice.enums.AlertStatus;
 import com.riskassessment.alertservice.enums.AlertType;
 import com.riskassessment.alertservice.exception.AlertNotFoundException;
 import com.riskassessment.alertservice.mapper.AlertMapper;
 import com.riskassessment.alertservice.repository.AlertRepository;
+import com.riskassessment.alertservice.service.AlertSseService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,6 +30,9 @@ class AlertServiceImplTest {
 
     @Mock
     private AlertMapper alertMapper;
+
+    @Mock
+    private AlertSseService sseService;
 
     @InjectMocks
     private AlertServiceImpl alertService;

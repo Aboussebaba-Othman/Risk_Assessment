@@ -7,15 +7,14 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
-/**
- * Full financial data DTO used by the scoring engine.
- * Contains all fields needed to compute the 15 CDC financial ratios.
- */
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class FinancialDataDTO {
+    private Integer fiscalYear;
+    private String periodEndDate;
 
     // ── BILAN ACTIF ──────────────────────────────────────────────────────────
     private BigDecimal totalAssets; // Total Actif

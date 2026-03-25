@@ -7,11 +7,13 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-/**
- * Security configuration for Report Service
- * Configures OAuth2 Resource Server to validate JWT tokens from Keycloak
- */
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
@@ -24,9 +26,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Public endpoints
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
-                        // All other endpoints require authentication
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt
@@ -35,19 +35,29 @@ public class SecurityConfig {
         return http.build();
     }
 
-    /**
-     * Converts JWT claims to Spring Security authorities
-     */
     @Bean
     public org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter jwtAuthenticationConverter() {
         var converter = new org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter();
 
-        // Extract roles from realm_access.roles claim
-        var grantedAuthoritiesConverter = new org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter();
-        grantedAuthoritiesConverter.setAuthoritiesClaimName("realm_access.roles");
-        grantedAuthoritiesConverter.setAuthorityPrefix("ROLE_");
+        converter.setJwtGrantedAuthoritiesConverter(jwt -> {
+            Map<String, Object> realmAccess = jwt.getClaimAsMap("realm_access");
+            if (realmAccess == null || !realmAccess.containsKey("roles")) {
+                return Collections.emptyList();
+            }
 
-        converter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
+            Collection<String> roles = (Collection<String>) realmAccess.get("roles");
+            return roles.stream()
+                    .map(roleName -> {
+                        String upper = roleName.toUpperCase();
+                        if (upper.startsWith("ROLE_")) {
+                            return new SimpleGrantedAuthority(upper);
+                        } else {
+                            return new SimpleGrantedAuthority("ROLE_" + upper);
+                        }
+                    })
+                    .collect(Collectors.toList());
+        });
+
         return converter;
     }
 }

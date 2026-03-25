@@ -19,14 +19,25 @@ public class ReportController {
     private final IReportService reportGenerationService;
 
     @PreAuthorize("hasRole('ANALYST') or hasRole('ADMIN')")
-    @GetMapping("/company/{companyId}/download")
+    @GetMapping(value = "/company/{companyId}/download", produces = MediaType.APPLICATION_PDF_VALUE)
     public ResponseEntity<byte[]> downloadCompanyReport(@PathVariable Long companyId) {
         
+        System.out.println("AUTHORITIES DEBUG: " + org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getAuthorities());
         byte[] pdfContent = reportGenerationService.generateCompanyReport(companyId);
 
+        System.out.println("AUTHORITIES: " + org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getAuthorities()); 
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=risk_report_" + companyId + ".pdf")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"risk_report_" + companyId + ".pdf\"")
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(pdfContent);
+    }
+
+    @GetMapping(value = "/debug", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Object> debugAuthorities() {
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        return ResponseEntity.ok(java.util.Map.of(
+            "authorities", auth.getAuthorities(),
+            "name", auth.getName()
+        ));
     }
 }

@@ -6,7 +6,7 @@ import com.riskassessment.analysis.AnalysisServiceApplication;
 import org.springframework.test.context.ActiveProfiles;
 
 
-@SpringBootTest(classes = AnalysisServiceApplication.class)
+@SpringBootTest(classes = AnalysisServiceApplication.class, properties = {"spring.cloud.config.enabled=false"})
 @ActiveProfiles("test")
 class AnalysisServiceApplicationTests {
 

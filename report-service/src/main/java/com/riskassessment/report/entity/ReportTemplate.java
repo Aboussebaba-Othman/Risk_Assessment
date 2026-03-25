@@ -33,6 +33,7 @@ public class ReportTemplate {
     @Field("content")
     private String content;
 
+    @Builder.Default
     @Field("is_active")
     private Boolean isActive = true;
 
