@@ -22,7 +22,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import com.riskassessment.scoring.enums.RiskLevel;
 
-@SpringBootTest
+@SpringBootTest(properties = {
+        "spring.cloud.config.enabled=false",
+        "spring.cloud.config.import-check.enabled=false"
+})
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 class ScoringControllerIT {

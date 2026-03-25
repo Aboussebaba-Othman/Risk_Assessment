@@ -8,6 +8,7 @@ import org.springframework.test.context.ActiveProfiles;
 @SpringBootTest(properties = {
 		"eureka.client.enabled=false",
 		"spring.cloud.config.enabled=false",
+		"spring.cloud.config.import-check.enabled=false",
 		"spring.liquibase.enabled=false",
 		"spring.datasource.url=jdbc:h2:mem:testdb;NON_KEYWORDS=VALUE",
 		"spring.datasource.driverClassName=org.h2.Driver",

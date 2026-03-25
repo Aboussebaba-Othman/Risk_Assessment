@@ -17,7 +17,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
+@SpringBootTest(properties = {
+        "spring.cloud.config.enabled=false",
+        "spring.cloud.config.import-check.enabled=false"
+})
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 class ReportControllerIT {

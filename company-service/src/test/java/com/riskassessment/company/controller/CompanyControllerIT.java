@@ -18,7 +18,11 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest(classes = com.riskassessment.companyservice.CompanyServiceApplication.class)
+@SpringBootTest(classes = com.riskassessment.companyservice.CompanyServiceApplication.class,
+        properties = {
+                "spring.cloud.config.enabled=false",
+                "spring.cloud.config.import-check.enabled=false"
+        })
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 class CompanyControllerIT {
