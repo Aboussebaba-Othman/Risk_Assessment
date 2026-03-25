@@ -1,9 +1,9 @@
 databaseChangeLog:
-  - changeSet:
-      id: 001-initial-schema
-      author: system
-      runOnChange: false
-      sqlFile:
-        path: db/changelog/changes/001-initial-schema.sql
-        splitStatements: true
-        stripComments: false
+  - include:
+      file: db/changelog/changes/001-initial-schema.sql
+      splitStatements: true
+      stripComments: false
+  - include:
+      file: db/changelog/changes/002-add-is-read.sql
+      splitStatements: true
+      stripComments: false

@@ -60,6 +60,12 @@ public class Alert {
     @Column(columnDefinition = "TEXT")
     private String errorMessage;
 
+    @Builder.Default
+    @Column(name = "is_read", nullable = false)
+    private boolean isRead = false;
+
+    private LocalDateTime readAt;
+
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

@@ -20,6 +20,8 @@ public interface AlertService {
 
     AlertResponseDTO getAlertById(Long id);
 
+    void markAsRead(Long id);
+
     List<AlertResponseDTO> getAlertsByCompany(Long companyId);
 
     List<AlertResponseDTO> getAllAlerts();

@@ -10,6 +10,7 @@ import com.riskassessment.alertservice.enums.AlertType;
 import com.riskassessment.alertservice.exception.AlertNotFoundException;
 import com.riskassessment.alertservice.repository.AlertRepository;
 import com.riskassessment.alertservice.service.AlertService;
+import com.riskassessment.alertservice.service.AlertSseService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,7 @@ public class AlertServiceImpl implements AlertService {
 
     private final AlertRepository alertRepository;
     private final AlertMapper alertMapper;
+    private final AlertSseService sseService;
 
     @Override
     @Transactional
@@ -41,7 +43,10 @@ public class AlertServiceImpl implements AlertService {
         alert = alertRepository.save(alert);
         log.info("Alert persisted id={} companyId={} severity={} type={}", alert.getId(),
                 companyId, severity, type);
-        return alertMapper.toDto(alert);
+                
+        AlertResponseDTO responseDto = alertMapper.toDto(alert);
+        sseService.dispatch(responseDto);
+        return responseDto;
     }
 
     @Override
@@ -68,6 +73,20 @@ public class AlertServiceImpl implements AlertService {
         Alert alert = alertRepository.findById(id)
                 .orElseThrow(() -> new AlertNotFoundException("Alert with ID " + id + " not found"));
         return alertMapper.toDto(alert);
+    }
+
+    @Override
+    @Transactional
+    public void markAsRead(Long id) {
+        Alert alert = alertRepository.findById(id)
+                .orElseThrow(() -> new AlertNotFoundException("Alert with ID " + id + " not found"));
+        
+        if (!alert.isRead()) {
+            alert.setRead(true);
+            alert.setReadAt(java.time.LocalDateTime.now());
+            alertRepository.save(alert);
+            log.info("Alert {} marked as read", id);
+        }
     }
 
     @Override

@@ -10,6 +10,9 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
 import java.util.List;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import com.riskassessment.alertservice.service.AlertSseService;
+import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/alerts")
@@ -18,6 +21,7 @@ import java.util.List;
 public class AlertController {
 
     private final AlertService alertService;
+    private final AlertSseService sseService;
 
     @PostMapping("/trigger")
     public ResponseEntity<AlertResponseDTO> triggerAlert(@RequestBody @Valid AlertRequestDTO request) {
@@ -39,5 +43,19 @@ public class AlertController {
     @GetMapping
     public ResponseEntity<List<AlertResponseDTO>> getAll() {
         return ResponseEntity.ok(alertService.getAllAlerts());
+    }
+
+    @GetMapping(value = "/stream", produces = org.springframework.http.MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter streamAlerts(Authentication authentication) {
+        // Use user's ID/username to register their SSE emitter
+        String clientId = authentication != null ? authentication.getName() : "anonymous";
+        log.info("SSE subscription request from user: {}", clientId);
+        return sseService.subscribe(clientId);
+    }
+
+    @PutMapping("/{id}/read")
+    public ResponseEntity<Void> markAsRead(@PathVariable Long id) {
+        alertService.markAsRead(id);
+        return ResponseEntity.noContent().build();
     }
 }

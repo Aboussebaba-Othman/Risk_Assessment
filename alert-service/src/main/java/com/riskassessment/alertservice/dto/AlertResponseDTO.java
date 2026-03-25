@@ -4,6 +4,7 @@ import com.riskassessment.alertservice.enums.AlertSeverity;
 import com.riskassessment.alertservice.enums.AlertStatus;
 import com.riskassessment.alertservice.enums.AlertType;
 import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.LocalDateTime;
 
@@ -18,4 +19,6 @@ public class AlertResponseDTO {
     private AlertStatus status;
     private LocalDateTime createdAt;
     private LocalDateTime sentAt;
+    @JsonProperty("isRead")
+    private boolean isRead;
 }
