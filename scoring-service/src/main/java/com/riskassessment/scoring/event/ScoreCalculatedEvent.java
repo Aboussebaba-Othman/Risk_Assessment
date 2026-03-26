@@ -14,8 +14,8 @@ import java.util.Map;
 @AllArgsConstructor
 @Builder
 public class ScoreCalculatedEvent {
-
     private Long companyId;
+    private Long tenantId;
     private Long scoreId;
 
     private BigDecimal overallScore;

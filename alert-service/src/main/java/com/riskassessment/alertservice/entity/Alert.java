@@ -31,6 +31,8 @@ public class Alert {
     @Column(name = "company_id")
     private Long companyId;
 
+    @Column(name = "tenant_id")
+    private Long tenantId;
     @Column(nullable = false)
     private String recipient;
 

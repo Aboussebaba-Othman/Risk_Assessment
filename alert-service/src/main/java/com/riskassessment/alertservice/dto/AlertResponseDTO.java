@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 public class AlertResponseDTO {
     private Long id;
     private Long companyId;
+    private Long tenantId;
     private String subject;
     private String message;
     private AlertType type;

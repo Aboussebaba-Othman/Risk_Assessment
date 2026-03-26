@@ -12,4 +12,6 @@ public interface AlertRepository extends JpaRepository<Alert, Long> {
     List<Alert> findByCompanyIdOrderByCreatedAtDesc(Long companyId);
 
     List<Alert> findAllByOrderByCreatedAtDesc();
+
+    long countByTenantIdAndIsReadFalse(Long tenantId);
 }

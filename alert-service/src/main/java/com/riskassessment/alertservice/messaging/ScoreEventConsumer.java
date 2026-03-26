@@ -39,6 +39,7 @@ public class ScoreEventConsumer {
 
             alertService.createAndSendAlert(
                     event.getCompanyId(),
+                    event.getTenantId(),
                     "risk@riskassessment.com",
                     subject,
                     buildAlertMessage(event, title, action),

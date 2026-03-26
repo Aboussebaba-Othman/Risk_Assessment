@@ -51,16 +51,21 @@ public class AlertSseService {
     }
 
     public void dispatch(AlertResponseDTO alert) {
-        log.info("Broadcasting alert {} to {} connected clients", alert.getId(), emitters.size());
+        log.info("Dispatching alert {} (tenantId={}) to {} connected clients", alert.getId(), alert.getTenantId(), emitters.size());
         
         emitters.forEach((clientId, emitter) -> {
-            try {
-                emitter.send(SseEmitter.event()
-                        .name("NEW_ALERT")
-                        .data(alert));
-            } catch (IOException e) {
-                log.error("Error dispatching alert to client {}", clientId, e);
-                emitters.remove(clientId);
+            // Secure broadcasting: Only send if the clientId matches the alert's tenantId
+            // OR if the alert has no tenantId (broadcast/system alert)
+            if (alert.getTenantId() == null || clientId.equals(alert.getTenantId().toString())) {
+                try {
+                    emitter.send(SseEmitter.event()
+                            .name("NEW_ALERT")
+                            .data(alert));
+                    log.debug("Sent alert {} to client {}", alert.getId(), clientId);
+                } catch (IOException e) {
+                    log.error("Error dispatching alert to client {}", clientId, e);
+                    emitters.remove(clientId);
+                }
             }
         });
     }

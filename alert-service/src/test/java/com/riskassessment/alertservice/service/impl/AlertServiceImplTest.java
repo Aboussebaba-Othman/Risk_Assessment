@@ -53,7 +53,7 @@ class AlertServiceImplTest {
         when(alertMapper.toDto(savedAlert)).thenReturn(responseDto);
 
         // Act
-        AlertResponseDTO result = alertService.createAndSendAlert(99L, "test@domain.com", "Subject", "Msg", AlertType.SCORE_CHANGE, AlertSeverity.HIGH);
+        AlertResponseDTO result = alertService.createAndSendAlert(99L, 1L, "test@domain.com", "Subject", "Msg", AlertType.SCORE_CHANGE, AlertSeverity.HIGH);
 
         // Assert
         assertNotNull(result);

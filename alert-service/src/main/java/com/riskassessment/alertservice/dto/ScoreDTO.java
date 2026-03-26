@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 public class ScoreDTO {
     private Long id;
     private Long companyId;
+    private Long tenantId;
     private BigDecimal overallScore;
     private String riskLevel;
     private String riskRating;

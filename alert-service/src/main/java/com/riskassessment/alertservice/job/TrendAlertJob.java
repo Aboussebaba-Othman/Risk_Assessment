@@ -3,7 +3,6 @@ package com.riskassessment.alertservice.job;
 import com.riskassessment.alertservice.client.ScoringClient;
 import com.riskassessment.alertservice.dto.ScoreDTO;
 import com.riskassessment.alertservice.dto.AlertResponseDTO;
-import com.riskassessment.alertservice.entity.Alert;
 import com.riskassessment.alertservice.enums.AlertSeverity;
 import com.riskassessment.alertservice.enums.AlertType;
 import com.riskassessment.alertservice.service.AlertService;
@@ -102,6 +101,7 @@ public class TrendAlertJob {
 
             alertService.createAndSendAlert(
                     companyId,
+                    latest.getTenantId(),
                     "risk@riskassessment.com",
                     subject,
                     message,

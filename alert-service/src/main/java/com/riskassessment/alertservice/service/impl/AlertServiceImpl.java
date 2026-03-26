@@ -29,9 +29,10 @@ public class AlertServiceImpl implements AlertService {
 
     @Override
     @Transactional
-    public AlertResponseDTO createAndSendAlert(Long companyId, String recipient, String subject, String message, AlertType type, AlertSeverity severity) {
+    public AlertResponseDTO createAndSendAlert(Long companyId, Long tenantId, String recipient, String subject, String message, AlertType type, AlertSeverity severity) {
         Alert alert = Alert.builder()
                 .companyId(companyId)
+                .tenantId(tenantId)
                 .recipient(recipient)
                 .subject(subject)
                 .message(message)
@@ -41,30 +42,27 @@ public class AlertServiceImpl implements AlertService {
                 .build();
 
         alert = alertRepository.save(alert);
-        log.info("Alert persisted id={} companyId={} severity={} type={}", alert.getId(),
-                companyId, severity, type);
+        log.info("Alert persisted id={} companyId={} tenantId={} severity={} type={}", alert.getId(),
+                companyId, tenantId, severity, type);
                 
         AlertResponseDTO responseDto = alertMapper.toDto(alert);
         sseService.dispatch(responseDto);
         return responseDto;
     }
 
-    @Override
-    @Transactional
-    public AlertResponseDTO createAndSendAlert(String recipient, String subject, String message, AlertType type) {
-        return createAndSendAlert(null, recipient, subject, message, type, AlertSeverity.WARNING);
-    }
+
 
     @Override
     @Transactional
     public AlertResponseDTO createAlertFromRequest(AlertRequestDTO request) {
         return createAndSendAlert(
-                null, 
+                request.getCompanyId(),
+                request.getTenantId(), 
                 request.getRecipient(), 
                 request.getSubject(), 
                 request.getMessage(), 
                 request.getType(), 
-                AlertSeverity.WARNING
+                request.getSeverity() != null ? request.getSeverity() : AlertSeverity.WARNING
         );
     }
 
@@ -87,6 +85,11 @@ public class AlertServiceImpl implements AlertService {
             alertRepository.save(alert);
             log.info("Alert {} marked as read", id);
         }
+    }
+
+    @Override
+    public long countUnreadAlerts(Long tenantId) {
+        return alertRepository.countByTenantIdAndIsReadFalse(tenantId);
     }
 
     @Override

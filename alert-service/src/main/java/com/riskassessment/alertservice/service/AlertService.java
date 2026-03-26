@@ -9,18 +9,17 @@ import java.util.List;
 
 public interface AlertService {
 
-    AlertResponseDTO createAndSendAlert(Long companyId, String recipient, String subject,
+    AlertResponseDTO createAndSendAlert(Long companyId, Long tenantId, String recipient, String subject,
                                         String message, AlertType type,
                                         AlertSeverity severity);
-
-    AlertResponseDTO createAndSendAlert(String recipient, String subject,
-                                        String message, AlertType type);
 
     AlertResponseDTO createAlertFromRequest(AlertRequestDTO request);
 
     AlertResponseDTO getAlertById(Long id);
 
     void markAsRead(Long id);
+
+    long countUnreadAlerts(Long tenantId);
 
     List<AlertResponseDTO> getAlertsByCompany(Long companyId);
 

@@ -58,4 +58,16 @@ public class AlertController {
         alertService.markAsRead(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/unread-count")
+    public ResponseEntity<Long> getUnreadCount(Authentication authentication) {
+        String sub = authentication != null ? authentication.getName() : "1";
+        Long tenantId;
+        try {
+            tenantId = Long.valueOf(sub);
+        } catch (NumberFormatException e) {
+            tenantId = 1L; 
+        }
+        return ResponseEntity.ok(alertService.countUnreadAlerts(tenantId));
+    }
 }

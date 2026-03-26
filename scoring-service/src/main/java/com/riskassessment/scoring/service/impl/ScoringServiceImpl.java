@@ -87,7 +87,7 @@ public class ScoringServiceImpl implements IScoringService {
 
         // 5. Trigger alert if HIGH or CRITICAL
         if (riskLevel == RiskLevel.HIGH_RISK || riskLevel == RiskLevel.CRITICAL) {
-            triggerRiskAlert(companyId, calculatedScore, riskLevel);
+            triggerRiskAlert(companyId, score.getTenantId(), calculatedScore, riskLevel);
         }
 
         return savedScore;
@@ -170,8 +170,10 @@ public class ScoringServiceImpl implements IScoringService {
         return RiskRating.D;
     }
 
-    private void triggerRiskAlert(Long companyId, int score, RiskLevel level) {
+    private void triggerRiskAlert(Long companyId, Long tenantId, int score, RiskLevel level) {
         AlertRequestDTO alertRequest = AlertRequestDTO.builder()
+                .companyId(companyId)
+                .tenantId(tenantId)
                 .recipient("risk@riskassessment.com")
                 .subject(String.format("ALERTE RISQUE %s — Société #%d", level.name(), companyId))
                 .message(String.format(
@@ -179,8 +181,10 @@ public class ScoringServiceImpl implements IScoringService {
                                 "Une action immédiate est requise.",
                         companyId, score, level.name()))
                 .type("SCORE_CHANGE")
+                .severity(level == RiskLevel.CRITICAL ? "CRITICAL" : (level == RiskLevel.HIGH_RISK ? "HIGH" : "WARNING"))
                 .build();
         alertGateway.triggerAlert(alertRequest);
-        log.info("Risk alert triggered for company {} (score={}, level={})", companyId, score, level);
+        log.info("Risk alert triggered for company {} (tenantId={}, score={}, level={}, severity={})", 
+                companyId, tenantId, score, level, alertRequest.getSeverity());
     }
 }
