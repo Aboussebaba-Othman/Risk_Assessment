@@ -10,7 +10,7 @@ public class SecurityAuditorAware implements AuditorAware<Long> {
 
     @Override
     public Optional<Long> getCurrentAuditor() {
-        Long userId = SecurityUtils.getCurrentUserId();
-        return Optional.ofNullable(userId != null ? userId : 1L);
+        Long tenantId = SecurityUtils.getTenantId();
+        return Optional.ofNullable(tenantId != null ? tenantId : 1L);
     }
 }

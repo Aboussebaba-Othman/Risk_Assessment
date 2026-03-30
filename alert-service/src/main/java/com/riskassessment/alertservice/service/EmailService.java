@@ -30,7 +30,7 @@ public class EmailService {
             helper.setFrom(fromEmail);
             helper.setTo(to);
             helper.setSubject(subject);
-            helper.setText(body, true); // true = HTML
+            helper.setText(body, true);
 
             mailSender.send(message);
             log.info("Email sent successfully to: {}", to);

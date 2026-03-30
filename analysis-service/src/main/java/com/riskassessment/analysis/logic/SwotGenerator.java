@@ -23,13 +23,12 @@ public class SwotGenerator {
         if (equity != null && equity.compareTo(new BigDecimal("500000")) > 0) {
             strengths.add("Solid Equity/Capitalization");
         }
-        // Industry specific
         if (company.getIndustrySector() != null && company.getIndustrySector().equalsIgnoreCase("Technology")) {
             strengths.add("High Growth Sector");
         }
 
         if (strengths.isEmpty()) {
-            strengths.add("Stable Core Business"); // Default
+            strengths.add("Stable Core Business");
         }
         return strengths;
     }

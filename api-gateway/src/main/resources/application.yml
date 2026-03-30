@@ -11,7 +11,7 @@ spring:
           enabled: true
           lower-case-service-id: true
       routes:
-        # auth-service: controller maps to /auth/**  → StripPrefix=2 strips /api/v1
+        # auth-service:
         - id: auth-service
           uri: lb://auth-service
           predicates:
@@ -19,7 +19,7 @@ spring:
           filters:
             - StripPrefix=2
 
-        # company-service: controller maps to /companies/**  → StripPrefix=2
+        # company-service:
         - id: company-service
           uri: lb://company-service
           predicates:
@@ -27,13 +27,13 @@ spring:
           filters:
             - StripPrefix=2
 
-        # scoring-service: controller maps to /api/v1/scores/**  → StripPrefix=0
+        # scoring-service:
         - id: scoring-service
           uri: lb://scoring-service
           predicates:
             - Path=/api/v1/scores/**
 
-        # analysis-service: controller maps to /analysis/**  → StripPrefix=2
+        # analysis-service:
         - id: analysis-service
           uri: lb://analysis-service
           predicates:
@@ -41,13 +41,13 @@ spring:
           filters:
             - StripPrefix=2
 
-        # report-service: controller maps to /api/v1/reports/**  → StripPrefix=0
+        # report-service:
         - id: report-service
           uri: lb://report-service
           predicates:
             - Path=/api/v1/reports/**
 
-        # alert-service: controller maps to /alerts/**  → StripPrefix=2
+        # alert-service:
         - id: alert-service
           uri: lb://alert-service
           predicates:

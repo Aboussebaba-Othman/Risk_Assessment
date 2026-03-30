@@ -7,9 +7,6 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
-/**
- * Detailed breakdown of score by criteria
- */
 @Entity
 @Table(name = "score_details")
 @Data

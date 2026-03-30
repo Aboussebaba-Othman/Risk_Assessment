@@ -14,6 +14,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.math.BigDecimal;
 
 import static org.hamcrest.Matchers.is;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -45,13 +46,13 @@ class ScoringControllerIT {
         mockedScore.setOverallScore(BigDecimal.valueOf(85));
         mockedScore.setRiskLevel(RiskLevel.LOW_RISK);
 
-        when(scoringService.calculateScore(companyId)).thenReturn(mockedScore);
+        when(scoringService.calculateScore(eq(companyId), eq(123L))).thenReturn(mockedScore);
 
-        mockMvc.perform(post("/api/scoring/calculate/{companyId}", companyId)
-                        .with(jwt().jwt(jwt -> jwt.claim("sub", "123"))))
+        mockMvc.perform(post("/api/v1/scores/calculate/{companyId}", companyId)
+                        .with(jwt().jwt(jwt -> jwt.claim("tenant_id", "123"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(5)))
-                .andExpect(jsonPath("$.riskLevel", is("LOW")));
+                .andExpect(jsonPath("$.riskLevel", is("LOW_RISK")));
     }
 
     @Test
@@ -61,10 +62,10 @@ class ScoringControllerIT {
         mockedScore.setId(10L);
         mockedScore.setOverallScore(BigDecimal.valueOf(90));
 
-        when(scoringService.getLatestScore(companyId)).thenReturn(mockedScore);
+        when(scoringService.getLatestScore(eq(companyId), eq(123L))).thenReturn(mockedScore);
 
-        mockMvc.perform(get("/api/scoring/companies/{companyId}/latest", companyId)
-                        .with(jwt()))
+        mockMvc.perform(get("/api/v1/scores/companies/{companyId}/latest", companyId)
+                        .with(jwt().jwt(jwt -> jwt.claim("tenant_id", "123"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(10)));
     }
@@ -75,10 +76,10 @@ class ScoringControllerIT {
         RecommendationDTO rec = new RecommendationDTO();
         rec.setDecision("Approve");
         
-        when(scoringService.getRecommendation(companyId)).thenReturn(rec);
+        when(scoringService.getRecommendation(eq(companyId), eq(123L))).thenReturn(rec);
         
-        mockMvc.perform(get("/api/scoring/companies/{companyId}/recommendation", companyId)
-                        .with(jwt()))
+        mockMvc.perform(get("/api/v1/scores/companies/{companyId}/recommendation", companyId)
+                        .with(jwt().jwt(jwt -> jwt.claim("tenant_id", "123"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.decision", is("Approve")));
     }

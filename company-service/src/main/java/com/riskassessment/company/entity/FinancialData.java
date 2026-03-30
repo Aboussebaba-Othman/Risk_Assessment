@@ -15,7 +15,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "financial_data")
+@Table(
+    name = "financial_data",
+    uniqueConstraints = @UniqueConstraint(
+        name = "uq_fd_company_year",
+        columnNames = {"company_id", "fiscal_year"}
+    )
+)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

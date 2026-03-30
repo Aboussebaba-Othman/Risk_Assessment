@@ -11,7 +11,13 @@ public interface AlertRepository extends JpaRepository<Alert, Long> {
 
     List<Alert> findByCompanyIdOrderByCreatedAtDesc(Long companyId);
 
+    List<Alert> findByTenantIdOrderByCreatedAtDesc(Long tenantId);
+
     List<Alert> findAllByOrderByCreatedAtDesc();
 
     long countByTenantIdAndIsReadFalse(Long tenantId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.data.jpa.repository.Query("UPDATE Alert a SET a.isRead = true, a.readAt = CURRENT_TIMESTAMP WHERE a.tenantId = :tenantId AND a.isRead = false")
+    void markAllAsReadByTenantId(Long tenantId);
 }

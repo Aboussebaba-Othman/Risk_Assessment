@@ -67,6 +67,7 @@ class AlertServiceImplTest {
         // Arrange
         Alert alert = new Alert();
         alert.setId(1L);
+        alert.setTenantId(1L);
         
         AlertResponseDTO dto = new AlertResponseDTO();
         dto.setId(1L);
@@ -75,7 +76,7 @@ class AlertServiceImplTest {
         when(alertMapper.toDto(alert)).thenReturn(dto);
 
         // Act
-        AlertResponseDTO result = alertService.getAlertById(1L);
+        AlertResponseDTO result = alertService.getAlertById(1L, 1L);
 
         // Assert
         assertNotNull(result);
@@ -88,7 +89,7 @@ class AlertServiceImplTest {
         when(alertRepository.findById(99L)).thenReturn(Optional.empty());
 
         // Act & Assert
-        assertThrows(AlertNotFoundException.class, () -> alertService.getAlertById(99L));
+        assertThrows(AlertNotFoundException.class, () -> alertService.getAlertById(99L, 1L));
     }
 
     @Test
@@ -101,7 +102,7 @@ class AlertServiceImplTest {
         when(alertMapper.toDtoList(alerts)).thenReturn(dtos);
 
         // Act
-        List<AlertResponseDTO> result = alertService.getAlertsByCompany(99L);
+        List<AlertResponseDTO> result = alertService.getAlertsByCompany(99L, 1L);
 
         // Assert
         assertNotNull(result);

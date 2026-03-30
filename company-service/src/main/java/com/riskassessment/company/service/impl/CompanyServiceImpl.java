@@ -18,7 +18,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -41,11 +43,11 @@ public class CompanyServiceImpl implements CompanyService {
 
         Company company = companyMapper.toEntity(dto);
         if (company.getTenantId() == null) {
-            Long currentUserId = SecurityUtils.getCurrentUserId();
-            company.setTenantId(currentUserId != null ? currentUserId : 1L);
+            Long currentTenantId = SecurityUtils.getTenantId();
+            company.setTenantId(currentTenantId != null ? currentTenantId : 1L);
         }
         company.setCurrency("MAD");
-        
+
         try {
             company.setStatus(dto.getStatus() != null ? CompanyStatus.valueOf(dto.getStatus()) : CompanyStatus.ACTIVE);
         } catch (IllegalArgumentException ignored) {
@@ -53,20 +55,36 @@ public class CompanyServiceImpl implements CompanyService {
         }
 
         Company saved = companyRepository.save(company);
-        log.info("Created company id={} registrationNumber={}", saved.getId(), saved.getRegistrationNumber());
+        log.info("Created company id={} registrationNumber={} tenantId={}", saved.getId(),
+                saved.getRegistrationNumber(), saved.getTenantId());
         return companyMapper.toDto(saved);
     }
 
     @Override
     public List<CompanyDto> getAllCompanies() {
-        return companyMapper.toDtoList(companyRepository.findAll());
+        Long tenantId = SecurityUtils.getTenantId();
+        log.info("DEBUG: Extracted tenant_id from JWT in CompanyService: {}", tenantId);
+        if (tenantId == null)
+            return Collections.emptyList();
+
+        List<CompanyDto> companies = companyRepository.findByTenantId(tenantId).stream()
+                .map(companyMapper::toDto)
+                .collect(Collectors.toList());
+        log.info("DEBUG: Found {} companies for tenantId {}", companies.size(), tenantId);
+        return companies;
     }
 
     @Override
     public CompanyDto getCompanyById(Long id) {
-        return companyRepository.findById(id)
-                .map(companyMapper::toDto)
+        Company company = companyRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Company not found: " + id));
+        Long currentTenantId = SecurityUtils.getTenantId();
+        if (currentTenantId != null && !currentTenantId.equals(company.getTenantId())) {
+            log.warn("Tenant isolation: tenantId={} tried to access company {} owned by tenantId={}",
+                    currentTenantId, id, company.getTenantId());
+            throw new ResourceNotFoundException("Company not found: " + id);
+        }
+        return companyMapper.toDto(company);
     }
 
     @Override
@@ -74,9 +92,9 @@ public class CompanyServiceImpl implements CompanyService {
     public CompanyDto updateCompany(Long id, CompanyDto dto) {
         Company company = companyRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Company not found: " + id));
-        
+
         companyMapper.updateCompanyFromDto(dto, company);
-        
+
         return companyMapper.toDto(companyRepository.save(company));
     }
 
@@ -96,14 +114,14 @@ public class CompanyServiceImpl implements CompanyService {
         FinancialData fd = financialDataRepository.findByCompanyIdAndFiscalYear(companyId, targetYear)
                 .orElse(new FinancialData());
 
+        companyMapper.updateFinancialDataFromDto(dto, fd);
+
         fd.setCompanyId(companyId);
         fd.setFiscalYear(targetYear);
-        
-        if (fd.getId() == null && dto.getPeriodEndDate() == null) {
+
+        if (fd.getPeriodEndDate() == null) {
             fd.setPeriodEndDate(LocalDate.of(targetYear, 12, 31));
         }
-
-        companyMapper.updateFinancialDataFromDto(dto, fd);
 
         FinancialData saved = financialDataRepository.save(fd);
         log.info("Added financial data for company {} (year {})", companyId, dto.getFiscalYear());
@@ -112,6 +130,9 @@ public class CompanyServiceImpl implements CompanyService {
 
     @Override
     public List<FinancialDataDto> getFinancialData(Long companyId) {
-        return companyMapper.toFinancialDtoList(financialDataRepository.findByCompanyIdOrderByFiscalYearDesc(companyId));
+        return companyMapper
+                .toFinancialDtoList(financialDataRepository.findByCompanyIdOrderByFiscalYearDesc(companyId));
     }
+
+
 }

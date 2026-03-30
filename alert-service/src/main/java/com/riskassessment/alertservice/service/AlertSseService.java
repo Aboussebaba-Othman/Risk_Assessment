@@ -13,13 +13,9 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class AlertSseService {
 
-    // Keep track of emitters by user ID or username. Here we use a general structure.
-    // If the system broadcasts to everyone, a simple list works. But since alerts might be per-company or per-user,
-    // let's use a concurrent map by string identifier (e.g. username from JWT).
     private final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
 
     public SseEmitter subscribe(String clientId) {
-        // Keep connection open for 1 hour or infinite (0)
         SseEmitter emitter = new SseEmitter(0L);
         emitters.put(clientId, emitter);
 
@@ -38,7 +34,6 @@ public class AlertSseService {
             emitters.remove(clientId);
         });
 
-        // Send an initial event to establish connection successfully
         try {
             emitter.send(SseEmitter.event().name("INIT").data("Connected"));
             log.info("SSE client subscribed: {}", clientId);
@@ -54,9 +49,9 @@ public class AlertSseService {
         log.info("Dispatching alert {} (tenantId={}) to {} connected clients", alert.getId(), alert.getTenantId(), emitters.size());
         
         emitters.forEach((clientId, emitter) -> {
-            // Secure broadcasting: Only send if the clientId matches the alert's tenantId
-            // OR if the alert has no tenantId (broadcast/system alert)
             if (alert.getTenantId() == null || clientId.equals(alert.getTenantId().toString())) {
+                log.info("SSE: Match found. Sending alert {} to client {} (target tenantId={})", 
+                        alert.getId(), clientId, alert.getTenantId());
                 try {
                     emitter.send(SseEmitter.event()
                             .name("NEW_ALERT")

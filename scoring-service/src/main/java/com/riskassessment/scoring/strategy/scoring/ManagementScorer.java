@@ -24,7 +24,7 @@ public class ManagementScorer extends BaseRatioScorer {
     }
 
     public double ratioRS(FinancialDataDTO f, boolean partial) {
-        if (!pos(f.getInventory())) return 5.0; // service sector — neutral
+        if (!pos(f.getInventory())) return 5.0;
         return lerp(bd(f.getRevenue()) / bd(f.getInventory()), RS_MIN, RS_MAX, false);
     }
 

@@ -22,4 +22,5 @@ public class AlertResponseDTO {
     private LocalDateTime sentAt;
     @JsonProperty("isRead")
     private boolean isRead;
+    private LocalDateTime readAt;
 }

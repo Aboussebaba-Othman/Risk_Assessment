@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-//File attachment for an analysis
 
 @Entity
 @Table(name = "analysis_attachments")

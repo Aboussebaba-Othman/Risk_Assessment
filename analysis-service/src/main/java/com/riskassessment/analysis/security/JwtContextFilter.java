@@ -41,7 +41,7 @@ public class JwtContextFilter extends OncePerRequestFilter {
         try {
             filterChain.doFilter(request, response);
         } finally {
-            UserContextHolder.clear(); // Always clean up thread-local
+            UserContextHolder.clear();
         }
     }
 }

@@ -32,10 +32,10 @@ public class ScoreEventConsumer {
         boolean isHigh = !isCritical && score.compareTo(new BigDecimal("40")) < 0;
 
         if (isCritical || isHigh) {
-            String title = isCritical ? "⚠️ ALERTE CRITIQUE" : "⚠️ ALERTE RISQUE ÉLEVÉ";
+            String title = isCritical ? " ALERTE CRITIQUE" : " ALERTE RISQUE ÉLEVÉ";
             String action = isCritical ? "Risque de défaut imminent. Intervention urgente requise." : "Une surveillance renforcée est recommandée.";
             AlertSeverity severity = isCritical ? AlertSeverity.CRITICAL : AlertSeverity.HIGH;
-            String subject = (isCritical ? "🚨 RISQUE CRITIQUE" : "⚠️ RISQUE ÉLEVÉ") + " — Société #" + event.getCompanyId();
+            String subject = (isCritical ? " RISQUE CRITIQUE" : " RISQUE ÉLEVÉ") + " — Société #" + event.getCompanyId();
 
             alertService.createAndSendAlert(
                     event.getCompanyId(),

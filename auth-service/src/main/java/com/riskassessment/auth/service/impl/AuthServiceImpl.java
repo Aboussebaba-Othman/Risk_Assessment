@@ -15,6 +15,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -43,10 +44,9 @@ public class AuthServiceImpl implements IAuthService {
 
     private final RestTemplate restTemplate;
 
-    // ── Register: create user in Keycloak
     public Map<String, Object> register(RegisterRequest request) {
         // 1. Get admin token
-        String adminToken = getAdminToken();
+        String adminToken = getAdminTokenPublic();
 
         // 2. Create user in Keycloak
         String createUserUrl = keycloakUrl + "/admin/realms/" + realm + "/users";
@@ -71,17 +71,22 @@ public class AuthServiceImpl implements IAuthService {
 
         if (response.getStatusCode() == HttpStatus.CREATED) {
             log.info("User {} created in Keycloak successfully", request.getUsername());
+
             // Assign realm roles
             if (request.getRoles() != null && !request.getRoles().isEmpty()) {
                 assignRoles(adminToken, request.getUsername(), request.getRoles());
             }
+
+            // Assign a unique numeric tenant_id attribute
+            assignTenantId(adminToken, request.getUsername());
+
             return Map.of("message", "User registered successfully", "username", request.getUsername());
         } else {
             throw new ExternalServiceException("Failed to create user in Keycloak: " + response.getStatusCode());
         }
     }
 
-    // ── Login: get token from Keycloak ─────────────────────────────────────
+    @SuppressWarnings("unchecked")
     public AuthResponse login(LoginRequest request) {
         String tokenUrl = keycloakUrl + "/realms/" + realm + "/protocol/openid-connect/token";
 
@@ -115,8 +120,11 @@ public class AuthServiceImpl implements IAuthService {
         }
     }
 
-    // ── Private helpers ────────────────────────────────────────────────────
+    public String getAdminTokenPublic() {
+        return getAdminToken();
+    }
 
+    @SuppressWarnings("unchecked")
     private String getAdminToken() {
         String tokenUrl = keycloakUrl + "/realms/master/protocol/openid-connect/token";
 
@@ -138,7 +146,6 @@ public class AuthServiceImpl implements IAuthService {
     @SuppressWarnings("unchecked")
     private void assignRoles(String adminToken, String username, List<String> roleNames) {
         try {
-            // Get user ID
             String usersUrl = keycloakUrl + "/admin/realms/" + realm + "/users?username=" + username + "&exact=true";
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(adminToken);
@@ -151,13 +158,11 @@ public class AuthServiceImpl implements IAuthService {
 
             String userId = (String) users.get(0).get("id");
 
-            // Get realm roles
             String rolesUrl = keycloakUrl + "/admin/realms/" + realm + "/roles";
             ResponseEntity<List> rolesResponse = restTemplate.exchange(rolesUrl, HttpMethod.GET,
                     new HttpEntity<>(headers), List.class);
             List<Map<String, Object>> allRoles = rolesResponse.getBody();
 
-            // Filter roles to assign
             List<Map<String, Object>> rolesToAssign = allRoles.stream()
                     .filter(r -> roleNames.stream().anyMatch(rn -> rn.equalsIgnoreCase((String) r.get("name"))))
                     .toList();
@@ -170,6 +175,37 @@ public class AuthServiceImpl implements IAuthService {
             }
         } catch (Exception e) {
             log.warn("Could not assign roles: {}", e.getMessage());
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void assignTenantId(String adminToken, String username) {
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(adminToken);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            String countUrl = keycloakUrl + "/admin/realms/" + realm + "/users/count";
+            ResponseEntity<Integer> countResp = restTemplate.exchange(countUrl, HttpMethod.GET, new HttpEntity<>(headers), Integer.class);
+            long tenantId = countResp.getBody() != null ? countResp.getBody().longValue() : System.currentTimeMillis() % 10000;
+
+            String usersUrl = keycloakUrl + "/admin/realms/" + realm + "/users?username=" + username + "&exact=true";
+            ResponseEntity<List> usersResp = restTemplate.exchange(usersUrl, HttpMethod.GET, new HttpEntity<>(headers), List.class);
+            if (usersResp.getBody() == null || usersResp.getBody().isEmpty()) return;
+
+            Map<String, Object> user = (Map<String, Object>) usersResp.getBody().get(0);
+            String userId = (String) user.get("id");
+
+            Map<String, Object> attrs = (Map<String, Object>) user.getOrDefault("attributes", new HashMap<>());
+            if (attrs == null) attrs = new HashMap<>();
+            attrs.put("tenant_id", List.of(String.valueOf(tenantId)));
+            user.put("attributes", attrs);
+
+            String updateUrl = keycloakUrl + "/admin/realms/" + realm + "/users/" + userId;
+            restTemplate.exchange(updateUrl, HttpMethod.PUT, new HttpEntity<>(user, headers), Void.class);
+            log.info("Assigned tenant_id={} to new user '{}'", tenantId, username);
+        } catch (Exception e) {
+            log.warn("Could not assign tenant_id to user '{}': {}", username, e.getMessage());
         }
     }
 }

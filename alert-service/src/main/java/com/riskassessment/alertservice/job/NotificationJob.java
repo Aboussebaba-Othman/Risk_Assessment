@@ -22,7 +22,7 @@ public class NotificationJob {
 
     private static final int MAX_RETRIES = 3;
 
-    @Scheduled(fixedDelay = 60000) // Run every minute
+    @Scheduled(fixedDelay = 60000)
     public void processPendingAlerts() {
         log.debug("Checking for pending alerts...");
         List<Alert> pendingAlerts = alertRepository.findByStatusOrderByCreatedAtAsc(AlertStatus.PENDING);

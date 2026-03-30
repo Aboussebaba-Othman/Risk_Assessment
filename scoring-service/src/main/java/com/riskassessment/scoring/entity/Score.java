@@ -13,10 +13,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Main score entity for company risk assessment
- * Contains overall score and detailed breakdowns
- */
+
 @Entity
 @Table(name = "scores")
 @Data

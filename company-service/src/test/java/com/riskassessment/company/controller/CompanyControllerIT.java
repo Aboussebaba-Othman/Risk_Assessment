@@ -52,11 +52,11 @@ class CompanyControllerIT {
         mockMvc.perform(post("/companies")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
-                .with(jwt().jwt(jwt -> jwt.claim("sub", "999")))) // Mock JWT with custom sub
+                .with(jwt().jwt(jwt -> jwt.claim("sub", "999")))) 
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.name", is("Integration Test Corp")))
-                .andExpect(jsonPath("$.tenantId", is(999))); // Proves SecurityUtils extraction works
+                .andExpect(jsonPath("$.tenantId", is(999))); 
     }
 
     @Test
@@ -76,13 +76,13 @@ class CompanyControllerIT {
                 .content(objectMapper.writeValueAsString(request))
                 .with(jwt()))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.message", containsString("already exists"))); // Proves GlobalExceptionHandler works
+                .andExpect(jsonPath("$.message", containsString("already exists")));
     }
 
     @Test
     void getCompany_UnAuthorized_ButGatewayHandlesIt_ShouldReturn200() throws Exception {
         mockMvc.perform(get("/companies"))
-                .andExpect(status().isOk()); // API Gateway handles auth, microservice permits all
+                .andExpect(status().isOk());
     }
 
     @Test

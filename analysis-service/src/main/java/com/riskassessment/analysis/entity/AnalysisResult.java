@@ -13,7 +13,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
-//SWOT analysis result finding
 
 @Entity
 @Table(name = "analysis_results")

@@ -10,10 +10,6 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/**
- * Historical record of score changes for a company
- * Tracks evolution of risk assessment over time
- */
 @Entity
 @Table(name = "score_history")
 @Data

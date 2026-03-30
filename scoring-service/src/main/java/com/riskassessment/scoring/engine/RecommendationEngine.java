@@ -23,7 +23,6 @@ public class RecommendationEngine {
 
         List<String> justifications = new ArrayList<>();
 
-        // 1. Base Strategy according to overall CDC Score
         if (scoreVal >= 90) {
             builder.decision("ACCORD")
                    .decisionLabel("Accord sans réserve")
@@ -74,10 +73,7 @@ public class RecommendationEngine {
             justifications.add("Score global critique (<25) : Risque de défaut très élevé. Rejet automatique du crédit standard.");
         }
 
-        // 2. Multi-factor Expert Overrides
-        // Check Payment Behavior Sub-Score
         if (scoreInfo.getOperationalScore() != null && scoreInfo.getOperationalScore().intValue() < 40) {
-            // Downgrade decision if payment behavior is poor despite a potentially okay global score
             if (scoreVal >= 60) {
                 builder.decision("ACCORD_CONDITIONNEL")
                        .decisionLabel("Accord avec garanties de paiement")
@@ -87,18 +83,16 @@ public class RecommendationEngine {
             }
         }
 
-        // 3. Process Live Data Warnings (Vetos & Flags)
         boolean hasNegativeEquity = false;
         if (warnings != null && !warnings.isEmpty()) {
             for (String w : warnings) {
-                justifications.add(w); // Add raw warning to the justification UI
+                justifications.add(w);
                 if (w.contains("Capitaux propres négatifs")) {
                     hasNegativeEquity = true;
                 }
             }
         }
 
-        // HARD VETO: Negative Equity immediately forces a hard refusal regardless of any other strengths
         if (hasNegativeEquity) {
             builder.decision("REFUS")
                    .decisionLabel("Refus Automatique (Règle VETO)")

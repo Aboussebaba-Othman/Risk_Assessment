@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -25,16 +26,15 @@ public class TrendAlertJob {
     private final ScoringClient scoringClient;
     private final AlertService alertService;
 
-    private static final int SCORE_DROP_THRESHOLD = 10; // alert if score drops ≥ 10 pts
+    private static final int SCORE_DROP_THRESHOLD = 10;
 
     private final Set<String> alerted = new HashSet<>();
 
 
-    @Scheduled(fixedDelay = 1_800_000) // every 30 minutes
+    @Scheduled(fixedDelay = 1_800_000)
     public void detectScoreDeclines() {
         log.debug("TrendAlertJob — scanning score histories for declines ≥ {} pts", SCORE_DROP_THRESHOLD);
 
-        // Gather known company IDs from existing alerts
         List<Long> companyIds = getTrackedCompanyIds();
         if (companyIds.isEmpty()) {
             log.debug("TrendAlertJob — no companies with alerts yet, skipping.");
@@ -62,7 +62,6 @@ public class TrendAlertJob {
         if (history == null || history.size() < 2)
             return;
 
-        // History is sorted DESC (newest first from scoring-service)
         ScoreDTO latest = history.get(0);
         ScoreDTO previous = history.get(1);
 
@@ -115,11 +114,11 @@ public class TrendAlertJob {
   
     private List<Long> getTrackedCompanyIds() {
         try {
-            return alertService.getAllAlerts().stream()
+            return alertService.getAllAlertsForSystem().stream()
                     .filter(a -> a.getCompanyId() != null)
                     .map(AlertResponseDTO::getCompanyId)
                     .distinct()
-                    .collect(java.util.stream.Collectors.toList());
+                    .collect(Collectors.toList());
         } catch (Exception e) {
             log.warn("TrendAlertJob — could not retrieve company IDs: {}", e.getMessage());
             return new ArrayList<>();

@@ -1,0 +1,2 @@
+# Pas de fichiers à ignorer pour le build local
+!target/*.jar

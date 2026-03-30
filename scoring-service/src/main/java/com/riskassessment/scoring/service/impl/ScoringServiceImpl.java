@@ -11,7 +11,6 @@ import com.riskassessment.scoring.repository.ScoreRepository;
 import com.riskassessment.scoring.strategy.ScoringStrategy;
 import com.riskassessment.scoring.exception.ResourceNotFoundException;
 import com.riskassessment.scoring.mapper.ScoringMapper;
-import com.riskassessment.scoring.security.SecurityUtils;
 import com.riskassessment.scoring.service.IScoringService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,31 +32,33 @@ public class ScoringServiceImpl implements IScoringService {
     private final RecommendationEngine recommendationEngine;
     private final ScoringMapper scoringMapper;
 
-    public Score calculateScore(Long companyId) {
-        log.info("Starting CDC-compliant score calculation for companyId: {}", companyId);
+    @Override
+    public Score calculateScore(Long companyId, Long tenantId) {
+        log.info("Starting CDC-compliant score calculation for companyId: {} for tenantId: {}", companyId, tenantId);
 
-        // 1. Fetch financial data from company-service
+        CompanyDTO company = companyGateway.getCompanyInfo(companyId);
+        
+        if (tenantId != null && !tenantId.equals(company.getTenantId())) {
+            log.warn("Tenant isolation: tenantId={} tried to calculate score for company {} owned by tenantId={}", 
+                    tenantId, companyId, company.getTenantId());
+            throw new ResourceNotFoundException("Company not found");
+        }
+
         CompanyFinancialsDTO raw = companyGateway.getLatestFinancialData(companyId);
         FinancialDataDTO financials = scoringMapper.toFinancialDataDTO(raw);
 
-        // 2. Fetch company info (sector, incorporation date, etc.)
-        CompanyDTO company = companyGateway.getCompanyInfo(companyId);
-
-        // 3. Calculate score via CDC 15-ratio strategy
         ScoringResult result = scoringStrategy.calculate(company, financials);
         int calculatedScore = result.getFinalScore();
         RiskLevel riskLevel = determineRiskLevel(calculatedScore);
 
-        // 4. Persist score with all sub-scores
         Score score = new Score();
         score.setCompanyId(companyId);
-        Long currentUserId = SecurityUtils.getCurrentUserId();
-        score.setTenantId(company.getTenantId() != null ? company.getTenantId() : (currentUserId != null ? currentUserId : 1L));
+        score.setTenantId(tenantId != null ? tenantId : (company.getTenantId() != null ? company.getTenantId() : 1L));
         score.setOverallScore(new BigDecimal(calculatedScore));
-        score.setFinancialScore(new BigDecimal(result.getFinancialScore())); // 40% — santé financière
-        score.setOperationalScore(new BigDecimal(result.getPaymentScore())); // 35% — comportement paiement
-        score.setMarketScore(new BigDecimal(result.getContextScore())); // 25% — contexte
-        score.setLegalScore(BigDecimal.ZERO); // non utilisé CDC
+        score.setFinancialScore(new BigDecimal(result.getFinancialScore())); 
+        score.setOperationalScore(new BigDecimal(result.getPaymentScore())); 
+        score.setMarketScore(new BigDecimal(result.getContextScore())); 
+        score.setLegalScore(BigDecimal.ZERO); 
 
         int confidence = 75;
         if (financials.getTotalPayments() != null && financials.getTotalPayments() > 0)
@@ -68,7 +69,6 @@ public class ScoringServiceImpl implements IScoringService {
             confidence += 5;
         score.setConfidenceLevel(new BigDecimal(Math.min(100, confidence)));
 
-        // Score valid for 12 months
         score.setValidUntil(LocalDateTime.now().plusYears(1));
 
         score.setRiskLevel(riskLevel);
@@ -76,7 +76,7 @@ public class ScoringServiceImpl implements IScoringService {
         score.setRiskRating(determineRiskRating(calculatedScore));
         score.setCreatedAt(LocalDateTime.now());
         score.setUpdatedAt(LocalDateTime.now());
-        String notes = "Score CDC — 15 ratios. Niveau: " + riskLevel.name()
+        String notes = "Score — 15 ratios. Niveau: " + riskLevel.name()
                 + (result.getScoringNotes() != null ? " | " + result.getScoringNotes() : "");
         score.setNotes(notes);
 
@@ -85,7 +85,6 @@ public class ScoringServiceImpl implements IScoringService {
                 companyId, calculatedScore, riskLevel,
                 result.getFinancialScore(), result.getPaymentScore(), result.getContextScore());
 
-        // 5. Trigger alert if HIGH or CRITICAL
         if (riskLevel == RiskLevel.HIGH_RISK || riskLevel == RiskLevel.CRITICAL) {
             triggerRiskAlert(companyId, score.getTenantId(), calculatedScore, riskLevel);
         }
@@ -93,23 +92,35 @@ public class ScoringServiceImpl implements IScoringService {
         return savedScore;
     }
 
-    public Score getLatestScore(Long companyId) {
-        return scoreRepository.findTopByCompanyIdOrderByScoredAtDesc(companyId)
+    @Override
+    public Score getLatestScore(Long companyId, Long tenantId) {
+        Score score = scoreRepository.findTopByCompanyIdOrderByScoredAtDesc(companyId)
                 .orElseThrow(() -> new ResourceNotFoundException("No score found for company ID: " + companyId));
-    }
-
-    public List<Score> getScoreHistory(Long companyId) {
-        return scoreRepository.findByCompanyIdOrderByScoredAtDesc(companyId);
-    }
-
-    public List<Score> getAllScores() {
-        return scoreRepository.findAll();
-    }
-
-    public RecommendationDTO getRecommendation(Long companyId) {
-        Score latestScore = getLatestScore(companyId);
         
-        // Fetch financial data to extract specific red flags
+        if (tenantId != null && !tenantId.equals(score.getTenantId())) {
+            throw new ResourceNotFoundException("Score not found");
+        }
+        return score;
+    }
+
+    @Override
+    public List<Score> getScoreHistory(Long companyId, Long tenantId) {
+        List<Score> history = scoreRepository.findByCompanyIdOrderByScoredAtDesc(companyId);
+        return history.stream()
+                .filter(s -> tenantId == null || tenantId.equals(s.getTenantId()))
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    @Override
+    public List<Score> getAllScores(Long tenantId) {
+        if (tenantId == null) return java.util.Collections.emptyList();
+        return scoreRepository.findByTenantId(tenantId);
+    }
+
+    @Override
+    public RecommendationDTO getRecommendation(Long companyId, Long tenantId) {
+        Score latestScore = getLatestScore(companyId, tenantId);
+        
         CompanyFinancialsDTO raw = companyGateway.getLatestFinancialData(companyId);
         FinancialDataDTO financials = scoringMapper.toFinancialDataDTO(raw);
         
@@ -132,7 +143,6 @@ public class ScoringServiceImpl implements IScoringService {
 
     // PRIVATE HELPERS
 
-    // Risk Level mapping (section 3.3).
     private RiskLevel determineRiskLevel(int score) {
         if (score >= 90)
             return RiskLevel.EXCELLENT;

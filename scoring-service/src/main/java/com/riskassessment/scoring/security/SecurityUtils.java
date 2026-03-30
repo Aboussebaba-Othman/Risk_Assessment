@@ -13,18 +13,30 @@ public class SecurityUtils {
     private SecurityUtils() {
     }
 
-    public static Long getCurrentUserId() {
+    public static Long getTenantId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth instanceof JwtAuthenticationToken jwtAuth) {
+            Object tenantIdClaim = jwtAuth.getToken().getClaim("tenant_id");
+            if (tenantIdClaim != null) {
+                try {
+                    if (tenantIdClaim instanceof Number n) return n.longValue();
+                    return Long.parseLong(tenantIdClaim.toString());
+                } catch (NumberFormatException ignored) {
+                }
+            }
             String sub = jwtAuth.getToken().getClaimAsString("sub");
             if (sub != null) {
                 try {
                     return Long.valueOf(sub);
-                } catch (NumberFormatException e) {
+                } catch (NumberFormatException ignored) {
                 }
             }
         }
         return null;
+    }
+
+    public static Long getCurrentUserId() {
+        return getTenantId();
     }
 
     public static String getCurrentUsername() {

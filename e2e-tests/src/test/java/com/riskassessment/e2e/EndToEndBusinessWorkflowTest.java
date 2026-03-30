@@ -28,7 +28,6 @@ public class EndToEndBusinessWorkflowTest {
     @Order(1)
     @DisplayName("Step 1: Authenticate with Identity Provider to retrieve JWT Token")
     void step1_Authenticate() {
-        // Attempt to fetch real token from Keycloak, fallback to mock if environment is offline
         try {
             Response response = given()
                     .contentType(ContentType.URLENC)

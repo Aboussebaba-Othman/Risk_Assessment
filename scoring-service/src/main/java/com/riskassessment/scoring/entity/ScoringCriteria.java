@@ -9,10 +9,6 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/**
- * Scoring criteria used for risk assessment
- * Defines the parameters and weights for scoring calculations
- */
 @Entity
 @Table(name = "scoring_criteria")
 @Data

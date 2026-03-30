@@ -6,9 +6,9 @@ import com.riskassessment.scoring.entity.Score;
 import java.util.List;
 
 public interface IScoringService {
-    Score calculateScore(Long companyId);
-    Score getLatestScore(Long companyId);
-    List<Score> getScoreHistory(Long companyId);
-    List<Score> getAllScores();
-    RecommendationDTO getRecommendation(Long companyId);
+    Score calculateScore(Long companyId, Long tenantId);
+    Score getLatestScore(Long companyId, Long tenantId);
+    List<Score> getScoreHistory(Long companyId, Long tenantId);
+    List<Score> getAllScores(Long tenantId);
+    RecommendationDTO getRecommendation(Long companyId, Long tenantId);
 }

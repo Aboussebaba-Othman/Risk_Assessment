@@ -15,13 +15,17 @@ public interface AlertService {
 
     AlertResponseDTO createAlertFromRequest(AlertRequestDTO request);
 
-    AlertResponseDTO getAlertById(Long id);
+    AlertResponseDTO getAlertById(Long id, Long tenantId);
 
-    void markAsRead(Long id);
+    void markAsRead(Long id, Long tenantId);
+
+    void markAllAsRead(Long tenantId);
 
     long countUnreadAlerts(Long tenantId);
 
-    List<AlertResponseDTO> getAlertsByCompany(Long companyId);
+    List<AlertResponseDTO> getAlertsByCompany(Long companyId, Long tenantId);
 
-    List<AlertResponseDTO> getAllAlerts();
+    List<AlertResponseDTO> getAllAlerts(Long tenantId);
+
+    List<AlertResponseDTO> getAllAlertsForSystem();
 }

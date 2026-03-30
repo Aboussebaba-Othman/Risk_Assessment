@@ -65,7 +65,7 @@ class CompanyServiceImplTest {
 
         when(companyRepository.findByRegistrationNumber("REG-123")).thenReturn(Optional.empty());
         when(companyMapper.toEntity(dto)).thenReturn(mappedCompany);
-        mockedSecurityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(100L);
+        mockedSecurityUtils.when(SecurityUtils::getTenantId).thenReturn(100L);
         when(companyRepository.save(any(Company.class))).thenReturn(savedCompany);
         
         CompanyDto responseDto = new CompanyDto();

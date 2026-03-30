@@ -179,21 +179,21 @@ public class StandardScoringStrategy implements ScoringStrategy {
 
     private int countComputedRatios(FinancialDataDTO f) {
         int n = 0;
-        if (pos(f.getCurrentAssets()) && pos(f.getCurrentLiabilities())) n++; // R1 LG
-        if (pos(f.getCurrentLiabilities())) n++;                               // R2 LR
-        if (pos(f.getCurrentLiabilities())) n++;                               // R3 LI
-        if (pos(f.getTotalLiabilities()))   n++;                               // R4 AF
-        if (pos(f.getEquity()))             n++;                               // R5 CE
-        if (f.getOperatingIncome() != null) n++;                               // R6 CI
-        if (pos(f.getTotalAssets()) && f.getNetResult() != null) n++;          // R7 ROA
-        if (pos(f.getRevenue()) && f.getNetResult() != null) n++;              // R8 MN
-        if (pos(f.getEquity()) && f.getNetResult() != null)  n++;              // R9 ROE
-        if (pos(f.getRevenue()) && f.getEbitda() != null)    n++;              // R10 EBITDA
-        if (pos(f.getRevenue()) && f.getAccountsReceivable() != null) n++;     // R11 DSO
-        if (f.getAccountsPayable() != null) n++;                               // R12 DF
-        if (f.getInventory() != null)       n++;                               // R13 RS
-        if (pos(f.getRevenue()))            n++;                               // R14 FRN
-        if (pos(f.getRevenue()))            n++;                               // R15 BFR
+        if (pos(f.getCurrentAssets()) && pos(f.getCurrentLiabilities())) n++; 
+        if (pos(f.getCurrentLiabilities())) n++;                               
+        if (pos(f.getCurrentLiabilities())) n++;                               
+        if (pos(f.getTotalLiabilities())) n++;                               
+        if (pos(f.getEquity())) n++;                               
+        if (f.getOperatingIncome() != null) n++;                               
+        if (pos(f.getTotalAssets()) && f.getNetResult() != null) n++;          
+        if (pos(f.getRevenue()) && f.getNetResult() != null) n++;              
+        if (pos(f.getEquity()) && f.getNetResult() != null)  n++;              
+        if (pos(f.getRevenue()) && f.getEbitda() != null) n++;              
+        if (pos(f.getRevenue()) && f.getAccountsReceivable() != null) n++;     
+        if (f.getAccountsPayable() != null) n++;                               
+        if (f.getInventory() != null) n++;                               
+        if (pos(f.getRevenue())) n++;                               
+        if (pos(f.getRevenue())) n++;                               
         return n;
     }
 

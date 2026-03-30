@@ -33,7 +33,7 @@ public interface CompanyMapper {
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "netIncome", source = "netResult")
-    @Mapping(target = "periodEndDate", expression = "java(dto.getPeriodEndDate() != null ? LocalDate.parse(dto.getPeriodEndDate()) : null)")
+    @Mapping(target = "periodEndDate", expression = "java(dto.getPeriodEndDate() != null && !dto.getPeriodEndDate().isBlank() ? LocalDate.parse(dto.getPeriodEndDate()) : financialData.getPeriodEndDate())")
     void updateFinancialDataFromDto(FinancialDataDto dto, @MappingTarget FinancialData financialData);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)

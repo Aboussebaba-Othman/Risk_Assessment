@@ -67,24 +67,44 @@ public class AlertServiceImpl implements AlertService {
     }
 
     @Override
-    public AlertResponseDTO getAlertById(Long id) {
+    public AlertResponseDTO getAlertById(Long id, Long tenantId) {
         Alert alert = alertRepository.findById(id)
                 .orElseThrow(() -> new AlertNotFoundException("Alert with ID " + id + " not found"));
+        
+        if (tenantId != null && !tenantId.equals(alert.getTenantId())) {
+            log.warn("Tenant isolation: tenantId={} tried to access alert {} owned by tenantId={}", 
+                    tenantId, id, alert.getTenantId());
+            throw new AlertNotFoundException("Alert not found");
+        }
+        
         return alertMapper.toDto(alert);
     }
 
     @Override
     @Transactional
-    public void markAsRead(Long id) {
+    public void markAsRead(Long id, Long tenantId) {
         Alert alert = alertRepository.findById(id)
                 .orElseThrow(() -> new AlertNotFoundException("Alert with ID " + id + " not found"));
+        
+        if (tenantId != null && !tenantId.equals(alert.getTenantId())) {
+            log.warn("Tenant isolation: tenantId={} tried to mark as read alert {} owned by tenantId={}", 
+                    tenantId, id, alert.getTenantId());
+            throw new AlertNotFoundException("Alert not found");
+        }
         
         if (!alert.isRead()) {
             alert.setRead(true);
             alert.setReadAt(java.time.LocalDateTime.now());
             alertRepository.save(alert);
-            log.info("Alert {} marked as read", id);
+            log.info("Alert {} marked as read for tenantId={}", id, tenantId);
         }
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public void markAllAsRead(Long tenantId) {
+        log.info("Marking all alerts as read for tenantId={}", tenantId);
+        alertRepository.markAllAsReadByTenantId(tenantId);
     }
 
     @Override
@@ -93,12 +113,20 @@ public class AlertServiceImpl implements AlertService {
     }
 
     @Override
-    public List<AlertResponseDTO> getAlertsByCompany(Long companyId) {
-        return alertMapper.toDtoList(alertRepository.findByCompanyIdOrderByCreatedAtDesc(companyId));
+    public List<AlertResponseDTO> getAlertsByCompany(Long companyId, Long tenantId) {
+        return alertMapper.toDtoList(alertRepository.findByCompanyIdOrderByCreatedAtDesc(companyId).stream()
+                .filter(a -> tenantId == null || tenantId.equals(a.getTenantId()))
+                .collect(java.util.stream.Collectors.toList()));
     }
 
     @Override
-    public List<AlertResponseDTO> getAllAlerts() {
+    public List<AlertResponseDTO> getAllAlerts(Long tenantId) {
+        if (tenantId == null) return java.util.Collections.emptyList();
+        return alertMapper.toDtoList(alertRepository.findByTenantIdOrderByCreatedAtDesc(tenantId));
+    }
+
+    @Override
+    public List<AlertResponseDTO> getAllAlertsForSystem() {
         return alertMapper.toDtoList(alertRepository.findAllByOrderByCreatedAtDesc());
     }
 }

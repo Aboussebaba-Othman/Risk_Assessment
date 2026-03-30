@@ -11,6 +11,6 @@ public class AlertRequestDTO {
     private String recipient;
     private String subject;
     private String message;
-    private String type; // Matching AlertType in AlertService
-    private String severity; // Matching AlertSeverity in AlertService
+    private String type; 
+    private String severity; 
 }

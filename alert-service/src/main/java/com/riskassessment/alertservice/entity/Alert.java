@@ -27,7 +27,6 @@ public class Alert {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /** The company this alert relates to (enables /alerts/company/{id} queries) */
     @Column(name = "company_id")
     private Long companyId;
 
